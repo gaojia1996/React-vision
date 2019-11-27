@@ -1,79 +1,127 @@
 import React from 'react';
 import './App.css';
-import { Layout, Menu, Breadcrumb, Icon } from 'antd';
+import { Layout, Menu, Icon } from 'antd';
+import Shape from './views/location/shape';
+import Code from './views/location/code';
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Header, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
 
-
 class App extends React.Component {
+  rootSubmenuKeys = ['classfication', 'location', 'segmentation', 'OCR', 'measurement'];
   state = {
     collapsed: false,
+    openKeys: ['location'],
+    selectedKeys: ['4'],
   };
 
-  onCollapse = collapsed => {
+  onCollapse = collapsed => { //左侧导航栏的缩小形式
     this.setState({ collapsed });
   };
+
+  onOpenChange = openKeys => { //使得导航栏只展开当前父级菜单——简洁的菜单栏
+    const latestOpenKey = openKeys.find(key => this.state.openKeys.indexOf(key) === -1);
+    if (this.rootSubmenuKeys.indexOf(latestOpenKey) === -1) {
+      this.setState({ openKeys });
+    } else {
+      this.setState({
+        openKeys: latestOpenKey ? [latestOpenKey] : [],
+      });
+    }
+  };
+
+  onSelect = selectedKeys => { //使得选中的菜单显示active
+    this.setState({
+      selectedKeys: selectedKeys.selectedKeys,
+    });
+  }
+  
+  showBody(){
+    if(this.state.selectedKeys[0] === '3'){
+      return <Shape />;
+    }else if(this.state.selectedKeys[0] === '4'){
+      return <Code />;
+    }else{
+      return null;
+    }
+  }
 
   render() {
     return (
       <Layout style={{ minHeight: '100vh' }}>
         <Sider collapsible collapsed={this.state.collapsed} onCollapse={this.onCollapse}>
           <div className="logo" />
-          <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
-            <Menu.Item key="1" onClick={()=>{console.log('test')}}>
-              <Icon type="pie-chart" />
-              <span>分类</span>
-            </Menu.Item>
-            <Menu.Item key="2">
-              <Icon type="desktop" />
-              <span>定位</span>
-            </Menu.Item>
+          <Menu theme="dark" selectedKeys={this.state.selectedKeys} openKeys={this.state.openKeys} onSelect={this.onSelect} onOpenChange={this.onOpenChange} mode="inline">
             <SubMenu
-              key="sub1"
+              key="classfication"
               title={
                 <span>
-                  <Icon type="user" />
+                  <Icon type="border-inner" />
+                  <span>分类</span>
+                </span>
+              }
+            >
+              <Menu.Item key="0">分类1</Menu.Item>
+              <Menu.Item key="1">分类2</Menu.Item>
+              <Menu.Item key="2">分类3</Menu.Item>
+            </SubMenu>
+            <SubMenu
+              key="location"
+              title={
+                <span>
+                  <Icon type="pushpin" />
+                  <span>定位</span>
+                </span>
+              }
+            >
+              <Menu.Item key="3">形状探测器</Menu.Item>
+              <Menu.Item key="4">二维码识别</Menu.Item>
+              <Menu.Item key="5">定位3</Menu.Item>
+            </SubMenu>
+            <SubMenu
+              key="segmentation"
+              title={
+                <span>
+                  <Icon type="block" />
                   <span>分割</span>
                 </span>
               }
             >
-              <Menu.Item key="3">Tom</Menu.Item>
-              <Menu.Item key="4">Bill</Menu.Item>
-              <Menu.Item key="5">Alex</Menu.Item>
+              <Menu.Item key="6">分割1</Menu.Item>
+              <Menu.Item key="7">分割2</Menu.Item>
+              <Menu.Item key="8">分割3</Menu.Item>
             </SubMenu>
             <SubMenu
-              key="sub2"
+              key="OCR"
               title={
                 <span>
-                  <Icon type="team" />
+                  <Icon type="search" />
                   <span>OCR</span>
                 </span>
               }
             >
-              <Menu.Item key="6">Team 1</Menu.Item>
-              <Menu.Item key="8">Team 2</Menu.Item>
+              <Menu.Item key="9">OCR1</Menu.Item>
+              <Menu.Item key="10">OCR2</Menu.Item>
+              <Menu.Item key="11">OCR3</Menu.Item>
             </SubMenu>
-            <Menu.Item key="9">
-              <Icon type="file" />
-              <span>测量</span>
-            </Menu.Item>
+            <SubMenu
+              key="measurement"
+              title={
+                <span>
+                  <Icon type="cluster" />
+                  <span>测量</span>
+                </span>
+              }
+            >
+              <Menu.Item key="12">测量1</Menu.Item>
+              <Menu.Item key="13">测量2</Menu.Item>
+              <Menu.Item key="14">测量3</Menu.Item>
+            </SubMenu>
           </Menu>
         </Sider>
         <Layout>
-          <Header style={{ background: '#fff', padding: 0 }} >
-          <Breadcrumb>
-              <Breadcrumb.Item>User</Breadcrumb.Item>
-              <Breadcrumb.Item>Bill</Breadcrumb.Item>
-            </Breadcrumb>
-          </Header>
-          <Content style={{ margin: '10px 16px' }}>
-            <Breadcrumb style={{ margin: '16px 0' }}>
-              <Breadcrumb.Item>User</Breadcrumb.Item>
-              <Breadcrumb.Item>Bill</Breadcrumb.Item>
-            </Breadcrumb>
-            <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>Bill is a cat.</div>
-          </Content>
+          <Header style={{ background: '#fff', padding: 0 }} />
+          {this.showBody()}
           <Footer style={{ textAlign: 'center' }}>Computer Vision ©2019 Created by ICC</Footer>
         </Layout>
       </Layout>
