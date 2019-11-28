@@ -3,6 +3,7 @@ import './App.css';
 import { Layout, Menu, Icon } from 'antd';
 import Shape from './views/location/shape';
 import Code from './views/location/code';
+import Bar from './views/location/bar';
 
 const { Header, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -35,13 +36,15 @@ class App extends React.Component {
       selectedKeys: selectedKeys.selectedKeys,
     });
   }
-  
-  showBody(){
-    if(this.state.selectedKeys[0] === '3'){
+
+  showBody() {
+    if (this.state.selectedKeys[0] === '3') {
       return <Shape />;
-    }else if(this.state.selectedKeys[0] === '4'){
+    } else if (this.state.selectedKeys[0] === '4') {
       return <Code />;
-    }else{
+    } else if (this.state.selectedKeys[0] === '5') {
+      return <Bar />;
+    } else {
       return null;
     }
   }
@@ -76,7 +79,7 @@ class App extends React.Component {
             >
               <Menu.Item key="3">形状探测器</Menu.Item>
               <Menu.Item key="4">二维码识别</Menu.Item>
-              <Menu.Item key="5">定位3</Menu.Item>
+              <Menu.Item key="5">条形码识别</Menu.Item>
             </SubMenu>
             <SubMenu
               key="segmentation"

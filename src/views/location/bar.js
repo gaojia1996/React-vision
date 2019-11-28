@@ -25,42 +25,27 @@ class Shape extends React.Component {
       .then(res => {
         const body = {
           img: res,
-          category: 'qrcode',
-          params: '{}',
+          category: 'barcode',
+          params: null,
         };
+        console.log(res);
         this.setState({
           uploading: true,
           base64: res,
         });
-        fetch("https://www.mocky.io/v2/5cc8019d300000980a055e76", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            "Accept": '*/*',
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Allow-Methods": "*",
-          },
-          mode: 'no-cors',
-          body: queryString.stringify(body),
-        })
-          .then((res) => {
-            console.log(res.text())
-          })
-        // .then(function (response) {
-        //   return response.json();
-        // })
-        // .then(res => {
-        //   console.log(res);
-        // })
-        // .catch(err => {
-        //   console.log(err);
+        // fetch("http://10.3.242.229:5000/localization/shape", {
+        //   method: 'POST',
+        //   headers: {
+        //     'Content-Type': 'application/x-www-form-urlencoded',
+        //     "Accept": '*/*',
+        //     "Access-Control-Allow-Origin": "*",
+        //     "Access-Control-Allow-Headers": "*",
+        //     "Access-Control-Allow-Methods": "*",
+        //   },
+        //   body: queryString.stringify(body),
         // });
       });
   };
-  parseJSON(response) {
-    return Promise.resolve(response.json());
-  }
   render() {
     const props = {
       beforeUpload: file => {
@@ -84,7 +69,7 @@ class Shape extends React.Component {
       <Content style={{ margin: '10px 16px' }}>
         <Breadcrumb style={{ margin: '16px 0' }}>
           <Breadcrumb.Item>定位</Breadcrumb.Item>
-          <Breadcrumb.Item>二维码识别</Breadcrumb.Item>
+          <Breadcrumb.Item>条形码识别</Breadcrumb.Item>
         </Breadcrumb>
         <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
           {this.state.uploading ?
