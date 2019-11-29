@@ -1,20 +1,25 @@
 import React from 'react';
-import { Breadcrumb, Layout, Upload, Icon, Button, } from 'antd';
+import { Breadcrumb, Layout, Upload, Icon, Button, Row, Col } from 'antd';
 import queryString from 'query-string';
-const { Dragger } = Upload;
 const { Content } = Layout;
 
 class Shape extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      fileList: [],
-      uploading: false,
-      base64: null,
+      showDragger: true, //Dragger组件的显示
+      uploading: false, //上传中的表示符
+      fileList: [], //存放上传的图片
+      base64: null, //存放base64加密的图片数据
     }
     this.handleUpload = this.handleUpload.bind(this);
   }
-  handleUpload = () => {
+  getBase64(img, callback) {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => callback(reader.result));
+    reader.readAsDataURL(img);
+  }
+  handleUpload = () => { //点击上传按钮之后的操作
     new Promise((resolve, reject) => {
       var reader = new FileReader();
       reader.readAsDataURL(this.state.fileList[0]);
@@ -32,7 +37,7 @@ class Shape extends React.Component {
           uploading: true,
           base64: res,
         });
-        fetch("https://www.mocky.io/v2/5cc8019d300000980a055e76", {
+        fetch("http://10.3.242.229:5000/localization/code", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -41,45 +46,50 @@ class Shape extends React.Component {
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Methods": "*",
           },
-          mode: 'no-cors',
+          mode: 'cors',
           body: queryString.stringify(body),
         })
           .then((res) => {
-            console.log(res.text())
+            return res.json();
           })
-        // .then(function (response) {
-        //   return response.json();
-        // })
-        // .then(res => {
-        //   console.log(res);
-        // })
-        // .catch(err => {
-        //   console.log(err);
-        // });
+          .then(res => {
+            console.log(res.results[2]);
+          })
+          .catch(err => {
+            console.log(err);
+          });
       });
   };
-  parseJSON(response) {
-    return Promise.resolve(response.json());
-  }
   render() {
     const props = {
+      listType: "picture-card",
+      name: "avatar",
+      className: "avatar-uploader",
+      showUploadList: false,
       beforeUpload: file => {
-        this.setState(state => ({
-          fileList: [...state.fileList, file],
-        }));
-        return false;
-      },
-      onRemove: file => {
-        this.setState(state => {
-          const index = state.fileList.indexOf(file);
-          const newFileList = state.fileList.slice();
-          newFileList.splice(index, 1);
-          return {
-            fileList: newFileList,
-          };
-        });
+        new Promise((resolve, reject) => {
+          var reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.addEventListener("load", function () {
+            resolve(reader.result);
+          }, false);
+        })
+          .then((res) => {
+            this.setState(state => ({
+              base64: res,
+              fileList: [...state.fileList, file],
+              showDragger: false,
+            }));
+            return false;
+          })
       },
     };
+    const uploadButton = (
+      <React.Fragment>
+        <Icon type="plus" />
+        <div className="ant-upload-text">上传</div>
+      </React.Fragment>
+    );
     return (
       <Content style={{ margin: '10px 16px' }}>
         <Breadcrumb style={{ margin: '16px 0' }}>
@@ -87,31 +97,20 @@ class Shape extends React.Component {
           <Breadcrumb.Item>二维码识别</Breadcrumb.Item>
         </Breadcrumb>
         <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
-          {this.state.uploading ?
-            <React.Fragment>
-              <p>success</p>
-              <img src={this.state.base64} alt="照片" />
-            </React.Fragment>
-            :
-            <React.Fragment>
-              <Dragger {...props}>
-                <p className="ant-upload-drag-icon">
-                  <Icon type="inbox" />
-                </p>
-                <p className="ant-upload-text">点击上传图片</p>
-                <p className="ant-upload-hint">请勿上传机密图片</p>
-              </Dragger>
-              <Button
-                type="primary"
-                onClick={this.handleUpload}
-                disabled={this.state.fileList.length === 0}
-                loading={this.state.uploading}
-                style={{ marginTop: 16 }}
-              >
-                {this.state.uploading ? 'Uploading' : 'Start Upload'}
-              </Button>
-            </React.Fragment>
-          }
+          <Upload {...props}>
+            {this.state.showDragger
+              ? uploadButton
+              : <img src={this.state.base64} alt="照片" style={{ width: "25%", }} />}
+          </Upload>
+          <Button
+            type="primary"
+            onClick={this.handleUpload}
+            disabled={this.state.fileList.length === 0}
+            loading={this.state.uploading}
+            style={{ marginTop: 16 }}
+          >
+            {this.state.uploading ? '上传中' : '开始上传'}
+          </Button>
         </div>
       </Content >
     );

@@ -12,8 +12,8 @@ class App extends React.Component {
   rootSubmenuKeys = ['classfication', 'location', 'segmentation', 'OCR', 'measurement'];
   state = {
     collapsed: false,
-    openKeys: ['location'],
-    selectedKeys: ['4'],
+    openKeys: sessionStorage.getItem('openKeys') ? [sessionStorage.getItem('openKeys')] : ['location'],
+    selectedKeys: sessionStorage.getItem('selectedKeys') ? sessionStorage.getItem('selectedKeys') : ['4'],
   };
 
   onCollapse = collapsed => { //左侧导航栏的缩小形式
@@ -21,10 +21,11 @@ class App extends React.Component {
   };
 
   onOpenChange = openKeys => { //使得导航栏只展开当前父级菜单——简洁的菜单栏
-    const latestOpenKey = openKeys.find(key => this.state.openKeys.indexOf(key) === -1);
-    if (this.rootSubmenuKeys.indexOf(latestOpenKey) === -1) {
+    const latestOpenKey = openKeys.find(key => this.state.openKeys.indexOf(key) === -1); //获取最新的展开菜单名称
+    if (this.rootSubmenuKeys.indexOf(latestOpenKey) === -1) { //仍展示或者收起当前的菜单栏
       this.setState({ openKeys });
-    } else {
+    } else { //更改展开的菜单栏内容
+      sessionStorage.setItem('openKeys', [latestOpenKey])
       this.setState({
         openKeys: latestOpenKey ? [latestOpenKey] : [],
       });
@@ -32,6 +33,7 @@ class App extends React.Component {
   };
 
   onSelect = selectedKeys => { //使得选中的菜单显示active
+    sessionStorage.setItem('selectedKeys', [selectedKeys.selectedKeys]);
     this.setState({
       selectedKeys: selectedKeys.selectedKeys,
     });

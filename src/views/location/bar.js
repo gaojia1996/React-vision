@@ -26,24 +26,33 @@ class Shape extends React.Component {
         const body = {
           img: res,
           category: 'barcode',
-          params: null,
+          params: '{"filter_qrcode":false}',
         };
-        console.log(res);
         this.setState({
           uploading: true,
           base64: res,
         });
-        // fetch("http://10.3.242.229:5000/localization/shape", {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/x-www-form-urlencoded',
-        //     "Accept": '*/*',
-        //     "Access-Control-Allow-Origin": "*",
-        //     "Access-Control-Allow-Headers": "*",
-        //     "Access-Control-Allow-Methods": "*",
-        //   },
-        //   body: queryString.stringify(body),
-        // });
+        fetch("http://10.3.242.229:5000/localization/code", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            "Accept": '*/*',
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*",
+          },
+          mode: 'cors',
+          body: queryString.stringify(body),
+        })
+          .then((res) => {
+            return res.json();
+          })
+          .then(res => {
+            console.log(res);
+          })
+          .catch(err => {
+            console.log(err);
+          });
       });
   };
   render() {
