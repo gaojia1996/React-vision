@@ -1,4 +1,4 @@
-@import '~antd/dist/antd.css';
+@import "~antd/dist/antd.css";
 
 .App {
   text-align: center;
@@ -30,6 +30,22 @@
 }
 
 .avatar-uploader > .ant-upload {
-  width: 1600px;
+  width: 90%;
   height: 500px;
+}
+
+p.ant-upload-drag-icon {
+  color: #40a9ff;
+  font-size: 48px;
+}
+
+p.ant-upload-hint {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+}
+
+p.ant-upload-text {
+  margin: 0 0 4px;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 16px;
 }
