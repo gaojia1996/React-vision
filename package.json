@@ -4,9 +4,11 @@
   "private": true,
   "dependencies": {
     "antd": "^3.25.3",
+    "konva": "^4.0.18",
     "query-string": "^6.9.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
+    "react-konva": "^16.10.1-0",
     "react-scripts": "3.2.0"
   },
   "scripts": {

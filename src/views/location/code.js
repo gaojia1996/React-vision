@@ -1,6 +1,7 @@
 import React from 'react';
 import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col } from 'antd';
 import queryString from 'query-string';
+import{ Stage, Layer, Rect } from 'react-konva';
 const { Content } = Layout;
 const { TabPane } = Tabs;
 
@@ -14,8 +15,12 @@ class Code extends React.Component {
       resultShow: false, //结果展示与否
       result: null, //存储返回结果
       showButton: true, //按钮变灰与否
+      width: 0,
+      height: 0,
+      file: null,
     }
     this.handleUpload = this.handleUpload.bind(this);
+    this.canvas = React.createRef();
   }
   getBase64(img, callback) { //回调函数形式获取图片base64格式
     const reader = new FileReader();
@@ -75,7 +80,11 @@ class Code extends React.Component {
       showUploadList: false,
       beforeUpload: file => {
         new Promise((resolve, reject) => {
+          this.setState({
+            file: file,
+          })
           var reader = new FileReader();
+          console.log(file)
           reader.readAsDataURL(file);
           reader.addEventListener("load", function () {
             resolve(reader.result);
@@ -87,6 +96,17 @@ class Code extends React.Component {
               showDragger: false, //上传框框中设置为展示用户上传的图片
               showButton: false,
             }));
+            return (res);
+          })
+          .then((res) => {
+            var img = new Image();
+            img.src = res;
+            img.onload = () => {
+              this.setState({
+                width: img.width,
+                height: img.height,
+              });
+            }; //将图片原本的宽高存入state
             return false;
           });
       },
@@ -100,6 +120,15 @@ class Code extends React.Component {
         <p className="ant-upload-hint">请勿上传机密图片</p>
       </React.Fragment>
     );
+    // if(this.state.resultShow){
+    //   console.log('test')
+    //   var canvas = document.getElementById('canvas');
+    //   if (canvas.getContext) {
+    //     console.log('test2')
+    //     var ctx = canvas.getContext('2d');
+    //     ctx.strokeRect(84, 241, 500, 507);
+    //   }
+    // }
     return (
       <Content style={{ margin: '10px 16px' }}>
         <Breadcrumb style={{ margin: '16px 0' }}>
@@ -139,6 +168,23 @@ class Code extends React.Component {
                         <p>像素点2：[{this.state.result.results[1][1][0][0]}, {this.state.result.results[1][1][0][1]}] </p>
                         <p>像素点3：[{this.state.result.results[1][2][0][0]}, {this.state.result.results[1][2][0][1]}] </p>
                         <p>像素点4：[{this.state.result.results[1][3][0][0]}, {this.state.result.results[1][3][0][1]}] </p>
+
+                        <canvas id="canvas" ref={this.canvas} width={this.state.width} height={this.state.height} style={{ backgroundImage: "url(" + this.state.base64 + ")" }}>
+                        </canvas>
+
+                        <Stage width={this.state.width} height={this.state.height} style={{ backgroundImage: "url(" + this.state.base64 + ")" }}>
+                          <Layer>
+                            <Rect
+                            ref='rect'
+                            x='84'
+                            y='241'
+                            width='505'
+                            height='507'
+                            fill="red"
+                            shadowBlur={10}
+                            />
+                          </Layer>
+                        </Stage>
                       </TabPane>
                       <TabPane tab="二维码" key="3">
                         <img src={this.state.result.results[2]} alt="照片" style={{ width: "20%", align: "center" }} />
