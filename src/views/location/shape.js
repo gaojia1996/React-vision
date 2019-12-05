@@ -3,8 +3,6 @@ import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col, Swit
 import queryString from 'query-string';
 const { Content } = Layout;
 const { TabPane } = Tabs;
-// let min_dist = 20, param1 = 100, param2 = 100, min_radius = 0, max_radius = 0;
-// let thresh = 127, epsilon_rate = 0.02, required_cls = ['rectangle', 'square'];
 
 class Shape extends React.Component {
   constructor(props) {
@@ -31,6 +29,18 @@ class Shape extends React.Component {
       resultShow: false,
       uploading: true,
     });
+    // const paramsCircle = {
+    //   min_dist: 20,
+    //   param1: 100,
+    //   param2: 100,
+    //   min_radius: 0,
+    //   max_radius: 0,
+    // }
+    // const paramPolygon = {
+    //   thresh: 127,
+    //   epsilon_rate: 0.02,
+    //   required_cls: ['rectangle', 'square'],
+    // }
     const url = "http://10.3.242.229:5000/localization/code";
     const body = {
       img: this.state.base64,

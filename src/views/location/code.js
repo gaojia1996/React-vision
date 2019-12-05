@@ -31,10 +31,11 @@ class Code extends React.Component {
       uploading: true, //使得上传按钮变成loading状态
     });
     const url = "http://10.3.242.229:5000/localization/code";
+    const params = {};
     const body = {
       img: this.state.base64,
       category: 'qrcode',
-      params: '{}',
+      params: JSON.stringify(params),
     };
     fetch(url, {
       method: 'POST',
@@ -59,7 +60,7 @@ class Code extends React.Component {
           uploading: false,
           showButton: true,
         });
-        // console.log(res.results);
+        console.log(res.results);
       })
       .catch(err => {
         this.setState({ //将按钮变成可操作，表示重新上传
