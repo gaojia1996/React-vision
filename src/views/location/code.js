@@ -1,7 +1,7 @@
 import React from 'react';
 import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col } from 'antd';
 import queryString from 'query-string';
-import{ Stage, Layer, Rect } from 'react-konva';
+import { Stage, Layer, Rect, Image } from 'react-konva';
 const { Content } = Layout;
 const { TabPane } = Tabs;
 
@@ -15,12 +15,11 @@ class Code extends React.Component {
       resultShow: false, //结果展示与否
       result: null, //存储返回结果
       showButton: true, //按钮变灰与否
-      width: 0,
-      height: 0,
-      file: null,
+      width: 0, //原图图的宽
+      height: 0, //原图的高
+      img: null, //新宽高的image对象
     }
     this.handleUpload = this.handleUpload.bind(this);
-    this.canvas = React.createRef();
   }
   getBase64(img, callback) { //回调函数形式获取图片base64格式
     const reader = new FileReader();
@@ -29,8 +28,7 @@ class Code extends React.Component {
   }
   handleUpload = () => { //点击上传按钮之后的操作
     this.setState({
-      resultShow: false,
-      uploading: true,
+      uploading: true, //使得上传按钮变成loading状态
     });
     const url = "http://10.3.242.229:5000/localization/code";
     const body = {
@@ -55,22 +53,29 @@ class Code extends React.Component {
       })
       .then(res => {
         message.success('图片已成功上传至后台~');
-        this.setState({
+        this.setState({ //将结果存储 并且各个状态值修改
           resultShow: true,
           result: res,
           uploading: false,
           showButton: true,
         });
-        console.log(res.results);
+        // console.log(res.results);
       })
       .catch(err => {
-        this.setState({
+        this.setState({ //将按钮变成可操作，表示重新上传
           uploading: false,
+          showButton: true,
         });
         message.error('上传至后台发生错误~请重试');
         console.log(err);
       });
   };
+  handleDistance(x1, y1, x2, y2) {
+    return (Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)));
+  }
+  handleRotation(x1, y1, x2, y2) {
+    return (Math.atan2(y2 - y1, x2 - x1) / Math.PI * 180);
+  }
   render() {
     const props = {
       action: "https://www.mocky.io/v2/5cc8019d300000980a055e76",
@@ -79,12 +84,8 @@ class Code extends React.Component {
       className: "avatar-uploader",
       showUploadList: false,
       beforeUpload: file => {
-        new Promise((resolve, reject) => {
-          this.setState({
-            file: file,
-          })
+        new Promise((resolve, reject) => { //将file转化成base64
           var reader = new FileReader();
-          console.log(file)
           reader.readAsDataURL(file);
           reader.addEventListener("load", function () {
             resolve(reader.result);
@@ -94,19 +95,25 @@ class Code extends React.Component {
             this.setState(state => ({
               base64: res, //图片base64加密后格式，用于显示图片同时发给后台
               showDragger: false, //上传框框中设置为展示用户上传的图片
-              showButton: false,
+              showButton: false, //按钮变灰无法点击
+              resultShow: false, //将上一次的结果不显示
             }));
             return (res);
           })
-          .then((res) => {
-            var img = new Image();
+          .then((res) => { //将base64之后的数据重新new一个image对象，修改宽、高用于结果中的canvas画图
+            var img = new window.Image();
             img.src = res;
+            const width = img.width;
+            const height = img.height;
+            img.width = 500;
+            img.height = 500 * height / width;
             img.onload = () => {
               this.setState({
-                width: img.width,
-                height: img.height,
+                width: width,
+                height: height,
+                img: img,
               });
-            }; //将图片原本的宽高存入state
+            };
             return false;
           });
       },
@@ -120,15 +127,6 @@ class Code extends React.Component {
         <p className="ant-upload-hint">请勿上传机密图片</p>
       </React.Fragment>
     );
-    // if(this.state.resultShow){
-    //   console.log('test')
-    //   var canvas = document.getElementById('canvas');
-    //   if (canvas.getContext) {
-    //     console.log('test2')
-    //     var ctx = canvas.getContext('2d');
-    //     ctx.strokeRect(84, 241, 500, 507);
-    //   }
-    // }
     return (
       <Content style={{ margin: '10px 16px' }}>
         <Breadcrumb style={{ margin: '16px 0' }}>
@@ -164,24 +162,28 @@ class Code extends React.Component {
                         {this.state.result.results[0]}
                       </TabPane>
                       <TabPane tab="二维码定位" key="2">
-                        <p>像素点1：[{this.state.result.results[1][0][0][0]}, {this.state.result.results[1][0][0][1]}] </p>
+                        {/* <p>像素点1：[{this.state.result.results[1][0][0][0]}, {this.state.result.results[1][0][0][1]}] </p>
                         <p>像素点2：[{this.state.result.results[1][1][0][0]}, {this.state.result.results[1][1][0][1]}] </p>
                         <p>像素点3：[{this.state.result.results[1][2][0][0]}, {this.state.result.results[1][2][0][1]}] </p>
-                        <p>像素点4：[{this.state.result.results[1][3][0][0]}, {this.state.result.results[1][3][0][1]}] </p>
-
-                        <canvas id="canvas" ref={this.canvas} width={this.state.width} height={this.state.height} style={{ backgroundImage: "url(" + this.state.base64 + ")" }}>
-                        </canvas>
-
-                        <Stage width={this.state.width} height={this.state.height} style={{ backgroundImage: "url(" + this.state.base64 + ")" }}>
+                        <p>像素点4：[{this.state.result.results[1][3][0][0]}, {this.state.result.results[1][3][0][1]}] </p> */}
+                        <Stage
+                          width={this.state.img.width}
+                          height={this.state.img.height}
+                        >
                           <Layer>
+                            <Image image={this.state.img} style={{ width: "100%" }} />
                             <Rect
-                            ref='rect'
-                            x='84'
-                            y='241'
-                            width='505'
-                            height='507'
-                            fill="red"
-                            shadowBlur={10}
+                              ref='rect'
+                              x={(this.state.result.results[1][0][0][0] / this.state.width) * this.state.img.width}
+                              y={(this.state.result.results[1][0][0][1] / this.state.height) * this.state.img.height}
+                              width={this.handleDistance(this.state.result.results[1][0][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][0][0][1] / this.state.height * this.state.img.height
+                                , this.state.result.results[1][1][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][1][0][1] / this.state.height * this.state.img.height)}
+                              height={this.handleDistance(this.state.result.results[1][0][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][0][0][1] / this.state.height * this.state.img.height
+                                , this.state.result.results[1][3][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][3][0][1] / this.state.height * this.state.img.height)}
+                              rotation={this.handleRotation(this.state.result.results[1][0][0][0], this.state.result.results[1][0][0][1]
+                                , this.state.result.results[1][1][0][0], this.state.result.results[1][1][0][1])}
+                              shadowBlur={10}
+                              stroke="red"
                             />
                           </Layer>
                         </Stage>

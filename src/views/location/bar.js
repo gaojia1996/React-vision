@@ -71,6 +71,8 @@ class Bar extends React.Component {
   onChange(checked) {
     this.setState({
       defaultKey: checked,
+      showButton: false,
+      uploading: false,
     });
   }
   render() {
@@ -122,7 +124,7 @@ class Bar extends React.Component {
                   : <img src={this.state.base64} alt="照片" style={{ width: "50%", }} />}
               </Upload>
               <Row>
-                是否过滤图片中的二维码：<Switch checkedChildren="开" unCheckedChildren="关" defaultChecked onChange={this.onChange} />
+                是否过滤图片中的二维码：<Switch checkedChildren="是" unCheckedChildren="否" defaultChecked onChange={this.onChange} />
               </Row>
               <Button
                 type="primary"
