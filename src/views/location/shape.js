@@ -1,8 +1,9 @@
 import React from 'react';
-import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col, Switch } from 'antd';
+import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col, Select, InputNumber } from 'antd';
 import queryString from 'query-string';
 const { Content } = Layout;
 const { TabPane } = Tabs;
+const { Option } = Select;
 
 class Shape extends React.Component {
   constructor(props) {
@@ -14,10 +15,27 @@ class Shape extends React.Component {
       resultShow: false, //结果展示与否
       result: null, //存储返回结果
       showButton: true, //按钮变灰与否
-      defaultKey: true, //默认过滤图片中的二维码
+      defaultKey: "circle", //默认选择的筛选形状
+      min_dist: 20,
+      param1: 100,
+      param2: 100,
+      min_radius: 0,
+      max_radius: 0,
+      thresh: 127,
+      epsilon_rate: 0.02,
+      width: 0, //原图图的宽
+      height: 0, //原图的高
+      img: null, //新宽高的image对象
     }
     this.handleUpload = this.handleUpload.bind(this);
-    this.onChange = this.onChange.bind(this);
+    this.onChangeSelect = this.onChangeSelect.bind(this);
+    this.onChangeMinDist = this.onChangeMinDist.bind(this);
+    this.onChangeParam1 = this.onChangeParam1.bind(this);
+    this.onChangeParam2 = this.onChangeParam2.bind(this);
+    this.onChangeMinRadius = this.onChangeMinRadius.bind(this);
+    this.onChangeMaxRadius = this.onChangeMaxRadius.bind(this);
+    this.onChangeThresh = this.onChangeThresh.bind(this);
+    this.onChangeEpsionRate = this.onChangeEpsionRate.bind(this);
   }
   getBase64(img, callback) { //回调函数形式获取图片base64格式
     const reader = new FileReader();
@@ -29,23 +47,24 @@ class Shape extends React.Component {
       resultShow: false,
       uploading: true,
     });
-    // const paramsCircle = {
-    //   min_dist: 20,
-    //   param1: 100,
-    //   param2: 100,
-    //   min_radius: 0,
-    //   max_radius: 0,
-    // }
-    // const paramPolygon = {
-    //   thresh: 127,
-    //   epsilon_rate: 0.02,
-    //   required_cls: ['rectangle', 'square'],
-    // }
-    const url = "http://10.3.242.229:5000/localization/code";
+    const paramsCircle = {
+      min_dist: this.state.min_dist,
+      param1: this.state.param1,
+      param2: this.state.param2,
+      min_radius: this.state.min_radius,
+      max_radius: this.state.max_radius,
+    }
+    const paramPolygon = {
+      thresh: this.state.thresh,
+      epsilon_rate: this.state.epsilon_rate,
+      required_cls: this.state.defaultKey,
+    }
+    const params = this.state.defaultKey === "circle" ? paramsCircle : paramPolygon;
+    const url = "http://10.3.242.229:5000/localization/shape";
     const body = {
       img: this.state.base64,
-      category: 'barcode',
-      params: '{"filter_qrcode":' + this.state.defaultKey + '}',
+      category: this.state.defaultKey === "circle" ? "circle" : "polygon",
+      params: JSON.stringify(params),
     };
     fetch(url, {
       method: 'POST',
@@ -80,12 +99,56 @@ class Shape extends React.Component {
         console.log(err);
       });
   };
-  onChange(checked) {
+  onChangeSelect(value) {
     this.setState({
-      defaultKey: checked,
+      defaultKey: value,
       showButton: false,
-      uploading: false,
     });
+  }
+  onChangeMinDist(value) {
+    this.setState({
+      min_dist: value,
+      showButton: false,
+    });
+  }
+  onChangeParam1(value) {
+    this.setState({
+      param1: value,
+      showButton: false,
+    });
+  }
+  onChangeParam2(value) {
+    this.setState({
+      param2: value,
+      showButton: false,
+    });
+  }
+  onChangeMinRadius(value) {
+    this.setState({
+      min_radius: value,
+      showButton: false,
+    });
+  }
+  onChangeMaxRadius(value) {
+    this.setState({
+      max_radius: value,
+      showButton: false,
+    });
+  }
+  onChangeThresh(value) {
+    this.setState({
+      thresh: value,
+      showButton: false,
+    });
+  }
+  onChangeEpsionRate(value) {
+    this.setState({
+      epsilon_rate: value,
+      showButton: false,
+    });
+  }
+  handleMax(width, height) {
+    return (width > height ? width : height);
   }
   render() {
     const props = {
@@ -108,6 +171,22 @@ class Shape extends React.Component {
               showDragger: false, //上传框框中设置为展示用户上传的图片
               showButton: false,
             }));
+            return res;
+          })
+          .then((res) => { //将base64之后的数据重新new一个image对象，修改宽、高用于结果中的canvas画图
+            var img = new window.Image();
+            img.src = res;
+            const width = img.width;
+            const height = img.height;
+            img.width = 500;
+            img.height = 500 * height / width;
+            img.onload = () => {
+              this.setState({
+                width: width,
+                height: height,
+                img: img,
+              });
+            };
             return false;
           });
       },
@@ -120,7 +199,7 @@ class Shape extends React.Component {
         <p className="ant-upload-text">点击上传图片</p>
         <p className="ant-upload-hint">请勿上传机密图片</p>
       </React.Fragment>
-    );
+    ); console.log(typeof (this.state.width > this.state.height ? this.state.width : this.state.height))
     return (
       <Content style={{ margin: '10px 16px' }}>
         <Breadcrumb style={{ margin: '16px 0' }}>
@@ -136,7 +215,33 @@ class Shape extends React.Component {
                   : <img src={this.state.base64} alt="照片" style={{ width: "50%", }} />}
               </Upload>
               <Row>
-                是否过滤图片中的二维码：<Switch checkedChildren="是" unCheckedChildren="否" defaultChecked onChange={this.onChange} />
+                {this.state.showDragger ? null : (
+                  <React.Fragment>
+                    选择筛选的形状：<Select style={{ width: 120 }} defaultValue={"circle"} onChange={this.onChangeSelect}>
+                      <Option value={"circle"} key={"圆形"}>圆形</Option>
+                      <Option value={"triangle"} key={"三角形"}>三角形</Option>
+                      <Option value={"rectangle"} key={"矩形"}>矩形</Option>
+                      <Option value={"square"} key={"正方形"}>正方形</Option>
+                      <Option value={"pentagon"} key={"五边形"}>五边形</Option>
+                      <Option value={"hexagon"} key={"六边形"}>六边形</Option>
+                    </Select>
+                    <br />
+                    {this.state.defaultKey === "circle" ? (
+                      <React.Fragment>
+                        最小圆心距：<InputNumber key='min_dist' min={1} defaultValue={this.state.min_dist} onChange={this.onChangeMinDist} />   <br />
+                        Canny边缘检测高阈值: <InputNumber key='param1' min={1} max={100} defaultValue={this.state.param1} onChange={this.onChangeParam1} />   <br />
+                        圆心检测阈值:<InputNumber key='param2' min={1} max={100} defaultValue={this.state.param2} onChange={this.onChangeParam2} />   <br />
+                        允许检测到的圆的最小半径:<InputNumber key='min_radius' defaultValue={this.state.min_radius} min={0} max={this.handleMax(this.state.width, this.state.height)} onChange={this.onChangeMinRadius} />   <br />
+                        允许检测到的圆的最大半径: <InputNumber key='max_radius' defaultValue={this.state.max_radius} min={0} max={this.state.width > this.state.height ? this.state.width : this.state.height} onChange={this.onChangeMaxRadius} />   <br />
+                      </React.Fragment>
+                    ) : (
+                        <React.Fragment>
+                          二值化阈值：<InputNumber key='thresh' min={0} max={255} step={1} defaultValue={this.state.thresh} onChange={this.onChangeThresh} />   <br />
+                          轮廓近似算法相关参数: <InputNumber key='epsilon_rate' defaultValue={this.state.epsilon_rate} min={0.01} max={0.05} step={0.001} onChange={this.onChangeEpsionRate} />   <br />
+                        </React.Fragment>
+                      )}
+                  </React.Fragment>
+                )}
               </Row>
               <Button
                 type="primary"
@@ -149,7 +254,7 @@ class Shape extends React.Component {
               </Button>
             </Col>
             <Col span={12}>
-              {this.state.resultShow ? (
+              {/* {this.state.resultShow ? (
                 <React.Fragment>
                   <h3>识别结果</h3>
                   <hr />
@@ -170,11 +275,9 @@ class Shape extends React.Component {
                     </Tabs>
                   }
                 </React.Fragment>
-              ) : null}
+              ) : null} */}
             </Col>
           </Row>
-
-
         </div>
       </Content >
     );

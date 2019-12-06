@@ -163,10 +163,6 @@ class Code extends React.Component {
                         {this.state.result.results[0]}
                       </TabPane>
                       <TabPane tab="二维码定位" key="2">
-                        {/* <p>像素点1：[{this.state.result.results[1][0][0][0]}, {this.state.result.results[1][0][0][1]}] </p>
-                        <p>像素点2：[{this.state.result.results[1][1][0][0]}, {this.state.result.results[1][1][0][1]}] </p>
-                        <p>像素点3：[{this.state.result.results[1][2][0][0]}, {this.state.result.results[1][2][0][1]}] </p>
-                        <p>像素点4：[{this.state.result.results[1][3][0][0]}, {this.state.result.results[1][3][0][1]}] </p> */}
                         <Stage
                           width={this.state.img.width}
                           height={this.state.img.height}
@@ -198,8 +194,6 @@ class Code extends React.Component {
               ) : null}
             </Col>
           </Row>
-
-
         </div>
       </Content >
     );

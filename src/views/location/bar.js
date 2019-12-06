@@ -238,8 +238,6 @@ class Bar extends React.Component {
               ) : null}
             </Col>
           </Row>
-
-
         </div>
       </Content >
     );
