@@ -1,8 +1,8 @@
 import React from 'react';
-import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col, Select, InputNumber } from 'antd';
+import { Breadcrumb, Layout, Upload, Icon, Button, message, Row, Col, Select, InputNumber, Card } from 'antd';
 import queryString from 'query-string';
+import { Stage, Layer, Line, Circle, Image } from 'react-konva';
 const { Content } = Layout;
-const { TabPane } = Tabs;
 const { Option } = Select;
 
 class Shape extends React.Component {
@@ -26,6 +26,7 @@ class Shape extends React.Component {
       width: 0, //原图图的宽
       height: 0, //原图的高
       img: null, //新宽高的image对象
+      selectDefaultIndex: 0,
     }
     this.handleUpload = this.handleUpload.bind(this);
     this.onChangeSelect = this.onChangeSelect.bind(this);
@@ -36,6 +37,7 @@ class Shape extends React.Component {
     this.onChangeMaxRadius = this.onChangeMaxRadius.bind(this);
     this.onChangeThresh = this.onChangeThresh.bind(this);
     this.onChangeEpsionRate = this.onChangeEpsionRate.bind(this);
+    this.onChangeSelectIndex = this.onChangeSelectIndex.bind(this);
   }
   getBase64(img, callback) { //回调函数形式获取图片base64格式
     const reader = new FileReader();
@@ -82,18 +84,20 @@ class Shape extends React.Component {
         return res.json();
       })
       .then(res => {
+        console.log(res.results);
         message.success('图片已成功上传至后台~');
         this.setState({
-          // resultShow: true,
-          // result: res,
+          selectDefaultIndex: 0,
+          result: res,
           uploading: false,
           showButton: true,
+          resultShow: true,
         });
-        console.log(res.results);
       })
       .catch(err => {
         this.setState({
           uploading: false,
+          resultShow: false,
         });
         message.error('上传至后台发生错误~请重试');
         console.log(err);
@@ -103,52 +107,87 @@ class Shape extends React.Component {
     this.setState({
       defaultKey: value,
       showButton: false,
+      resultShow: false,
     });
   }
   onChangeMinDist(value) {
     this.setState({
       min_dist: value,
       showButton: false,
+      resultShow: false,
     });
   }
   onChangeParam1(value) {
     this.setState({
       param1: value,
       showButton: false,
+      resultShow: false,
     });
   }
   onChangeParam2(value) {
     this.setState({
       param2: value,
       showButton: false,
+      resultShow: false,
     });
   }
   onChangeMinRadius(value) {
     this.setState({
       min_radius: value,
       showButton: false,
+      resultShow: false,
     });
   }
   onChangeMaxRadius(value) {
     this.setState({
       max_radius: value,
       showButton: false,
+      resultShow: false,
     });
   }
   onChangeThresh(value) {
     this.setState({
       thresh: value,
       showButton: false,
+      resultShow: false,
     });
   }
   onChangeEpsionRate(value) {
     this.setState({
       epsilon_rate: value,
       showButton: false,
+      resultShow: false,
     });
   }
-  handleMax(width, height) {
-    return (width > height ? width : height);
+  onChangeSelectIndex(value) {
+    this.setState({
+      selectDefaultIndex: value,
+    });
+  }
+  handleName(key) {
+    switch (key) {
+      case "circle":
+        return "圆形";
+      case "triangle":
+        return "三角形";
+      case "rectangle":
+        return "矩形";
+      case "square":
+        return "正方形";
+      case "pentagon":
+        return "五边形";
+      case "hexagon":
+        return "六边形";
+      default:
+        return "无法识别";
+    }
+  }
+  handlePoints(array, devided) {
+    const arr = array.flat();
+    const arrNew = arr.map((k) => {
+      return (k / devided);
+    });
+    return arrNew;
   }
   render() {
     const props = {
@@ -170,6 +209,8 @@ class Shape extends React.Component {
               base64: res, //图片base64加密后格式，用于显示图片同时发给后台
               showDragger: false, //上传框框中设置为展示用户上传的图片
               showButton: false,
+              resultShow: false,
+              selectDefaultIndex: 0,
             }));
             return res;
           })
@@ -185,6 +226,7 @@ class Shape extends React.Component {
                 width: width,
                 height: height,
                 img: img,
+                selectDefaultIndex: 0,
               });
             };
             return false;
@@ -199,7 +241,7 @@ class Shape extends React.Component {
         <p className="ant-upload-text">点击上传图片</p>
         <p className="ant-upload-hint">请勿上传机密图片</p>
       </React.Fragment>
-    ); console.log(typeof (this.state.width > this.state.height ? this.state.width : this.state.height))
+    );
     return (
       <Content style={{ margin: '10px 16px' }}>
         <Breadcrumb style={{ margin: '16px 0' }}>
@@ -231,8 +273,8 @@ class Shape extends React.Component {
                         最小圆心距：<InputNumber key='min_dist' min={1} defaultValue={this.state.min_dist} onChange={this.onChangeMinDist} />   <br />
                         Canny边缘检测高阈值: <InputNumber key='param1' min={1} max={100} defaultValue={this.state.param1} onChange={this.onChangeParam1} />   <br />
                         圆心检测阈值:<InputNumber key='param2' min={1} max={100} defaultValue={this.state.param2} onChange={this.onChangeParam2} />   <br />
-                        允许检测到的圆的最小半径:<InputNumber key='min_radius' defaultValue={this.state.min_radius} min={0} max={this.handleMax(this.state.width, this.state.height)} onChange={this.onChangeMinRadius} />   <br />
-                        允许检测到的圆的最大半径: <InputNumber key='max_radius' defaultValue={this.state.max_radius} min={0} max={this.state.width > this.state.height ? this.state.width : this.state.height} onChange={this.onChangeMaxRadius} />   <br />
+                        允许检测到的圆的最小半径:<InputNumber key='min_radius' defaultValue={this.state.min_radius} min={0} onChange={this.onChangeMinRadius} />   <br />
+                        允许检测到的圆的最大半径: <InputNumber key='max_radius' defaultValue={this.state.max_radius} min={0} onChange={this.onChangeMaxRadius} />   <br />
                       </React.Fragment>
                     ) : (
                         <React.Fragment>
@@ -254,28 +296,83 @@ class Shape extends React.Component {
               </Button>
             </Col>
             <Col span={12}>
-              {/* {this.state.resultShow ? (
+              {this.state.resultShow ? (
                 <React.Fragment>
                   <h3>识别结果</h3>
                   <hr />
-                  {this.state.result.results[0] === "" ? '上传的图片不含有二维码' :
-                    <Tabs defaultActiveKey="1">
-                      <TabPane tab="识别内容" key="1">
-                        {this.state.result.results[0]}
-                      </TabPane>
-                      <TabPane tab="二维码定位" key="2">
-                        <p>像素点1：[{this.state.result.results[1][0][0][0]}, {this.state.result.results[1][0][0][1]}] </p>
-                        <p>像素点2：[{this.state.result.results[1][1][0][0]}, {this.state.result.results[1][1][0][1]}] </p>
-                        <p>像素点3：[{this.state.result.results[1][2][0][0]}, {this.state.result.results[1][2][0][1]}] </p>
-                        <p>像素点4：[{this.state.result.results[1][3][0][0]}, {this.state.result.results[1][3][0][1]}] </p>
-                      </TabPane>
-                      <TabPane tab="二维码" key="3">
-                        <img src={this.state.result.results[2]} alt="照片" style={{ width: "20%", align: "center" }} />
-                      </TabPane>
-                    </Tabs>
-                  }
+                  {this.state.defaultKey === "circle" ? (
+                    <React.Fragment>
+                      {this.state.result.results === null || this.state.result['results'].length === 0 ? (
+                        '上传的图片不含有符合条件的圆形，请修改查找圆形的条件或者选择筛选其他形状~'
+                      ) : (
+                          <React.Fragment>
+                            结果类型：<Select style={{ width: 150 }} defaultValue={"circle"}>
+                              <Option value={"circle"} key={"圆形"}>圆形</Option>
+                            </Select>
+                            <br />
+                            选择查看的结果序号：<Select style={{ width: 80 }} defaultValue={this.state.selectDefaultIndex} onChange={this.onChangeSelectIndex}>
+                              {this.state.result.results.map((k, i) => {
+                                return (<Option value={i} key={k + i}>{i + 1}</Option>)
+                              })}
+                            </Select>
+                            <Card title={"第" + (this.state.selectDefaultIndex + 1) + "组结果"} key={"circle" + this.state.selectDefaultIndex}>
+                              <Stage
+                                width={this.state.img.width}
+                                height={this.state.img.height}
+                              >
+                                <Layer>
+                                  <Image image={this.state.img} style={{ width: "100%" }} />
+                                  <Circle
+                                    x={this.state.result.results[this.state.selectDefaultIndex][0] * this.state.img.width / this.state.width}
+                                    y={this.state.result.results[this.state.selectDefaultIndex][1] * this.state.img.width / this.state.width}
+                                    radius={this.state.result.results[this.state.selectDefaultIndex][2] * this.state.img.width / this.state.width}
+                                    stroke="red"
+                                  >
+                                  </Circle>
+                                </Layer>
+                              </Stage>
+                            </Card>
+                          </React.Fragment>
+                        )}
+                    </React.Fragment>
+                  ) : (
+                      <React.Fragment>{Object.keys(this.state.result.results).length === 0}
+                        {Object.keys(this.state.result.results).length === 0 ? (
+                          '上传的图片不含有符合条件的' + this.handleName(this.state.defaultKey) + '，请修改查找' + this.handleName(this.state.defaultKey) + '的条件或者选择筛选其他形状~'
+                        ) : (
+                            <React.Fragment>
+                              结果类型：<Select style={{ width: 150 }} defaultValue={this.state.defaultKey}>
+                                <Option value={this.state.defaultKey} key={this.handleName(this.state.defaultKey)}>{this.handleName(this.state.defaultKey)}</Option>
+                              </Select>
+                              <br />
+                              选择查看的结果序号：<Select style={{ width: 80 }} defaultValue={this.state.selectDefaultIndex} onChange={this.onChangeSelectIndex}>
+                                {this.state.result.results[this.state.defaultKey].map((k, i) => {
+                                  return (<Option value={i} key={k + i}>{i + 1}</Option>)
+                                })}
+                              </Select>
+                              <Card title={"第" + (this.state.selectDefaultIndex + 1) + "组结果"} key={"circle" + this.state.selectDefaultIndex}>
+                                <Stage
+                                  width={this.state.img.width}
+                                  height={this.state.img.height}
+                                >
+                                  <Layer>
+                                    <Image image={this.state.img} style={{ width: "100%" }} />
+                                    <Line
+                                      points={this.handlePoints(this.state.result.results[this.state.defaultKey][this.state.selectDefaultIndex], this.state.width / this.state.img.width)}
+                                      shadowBlur={10}
+                                      closed={true}
+                                      stroke="red"
+                                    >
+                                    </Line>
+                                  </Layer>
+                                </Stage>
+                              </Card>
+                            </React.Fragment>
+                          )}
+                      </React.Fragment>
+                    )}
                 </React.Fragment>
-              ) : null} */}
+              ) : null}
             </Col>
           </Row>
         </div>

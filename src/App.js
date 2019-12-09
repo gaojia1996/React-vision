@@ -13,7 +13,7 @@ class App extends React.Component {
   state = {
     collapsed: false,
     openKeys: sessionStorage.getItem('openKeys') ? [sessionStorage.getItem('openKeys')] : ['location'],
-    selectedKeys: sessionStorage.getItem('selectedKeys') ? sessionStorage.getItem('selectedKeys') : ['4'],
+    selectedKeys: sessionStorage.getItem('selectedKeys') ? sessionStorage.getItem('selectedKeys') : ['3'],
   };
 
   onCollapse = collapsed => { //左侧导航栏的缩小形式
@@ -41,11 +41,11 @@ class App extends React.Component {
 
   showBody() {
     if (this.state.selectedKeys[0] === '3') {
-      return <Shape />;
-    } else if (this.state.selectedKeys[0] === '4') {
       return <Code />;
-    } else if (this.state.selectedKeys[0] === '5') {
+    } else if (this.state.selectedKeys[0] === '4') {
       return <Bar />;
+    } else if (this.state.selectedKeys[0] === '5') {
+      return <Shape />;
     } else {
       return null;
     }
@@ -53,7 +53,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <Layout style={{ minHeight: '100vh' , minWidth: '100vh'}}>
+      <Layout style={{ minHeight: '100vh', minWidth: '100vh' }}>
         <Sider collapsible collapsed={this.state.collapsed} onCollapse={this.onCollapse}>
           <div className="logo" />
           <Menu theme="dark" selectedKeys={this.state.selectedKeys} openKeys={this.state.openKeys} onSelect={this.onSelect} onOpenChange={this.onOpenChange} mode="inline">
@@ -79,9 +79,9 @@ class App extends React.Component {
                 </span>
               }
             >
-              <Menu.Item key="3">形状探测器</Menu.Item>
-              <Menu.Item key="4">二维码识别</Menu.Item>
-              <Menu.Item key="5">条形码识别</Menu.Item>
+              <Menu.Item key="3">二维码识别</Menu.Item>
+              <Menu.Item key="4">条形码识别</Menu.Item>
+              <Menu.Item key="5">形状探测器</Menu.Item>
             </SubMenu>
             <SubMenu
               key="segmentation"
