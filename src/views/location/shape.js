@@ -1,7 +1,8 @@
 import React from 'react';
-import { Breadcrumb, Layout, Upload, Icon, Button, message, Row, Col, Select, InputNumber, Card } from 'antd';
+import { Breadcrumb, Layout, Upload, Icon, Button, message, Row, Col, Select, InputNumber, Card, Tooltip, Tabs } from 'antd';
 import queryString from 'query-string';
 import { Stage, Layer, Line, Circle, Image } from 'react-konva';
+const { TabPane } = Tabs;
 const { Content } = Layout;
 const { Option } = Select;
 
@@ -189,6 +190,34 @@ class Shape extends React.Component {
     });
     return arrNew;
   }
+  renderAllCircle(result, devided) {
+    const resultCircle = result.map((k, i) => {
+      return (
+        <Circle
+          x={k[0] * devided}
+          y={k[1] * devided}
+          radius={k[2] * devided}
+          stroke="red"
+        >
+        </Circle>
+      )
+    });
+    return resultCircle;
+  }
+  renderAllPolygon(result, devided) {
+    const resultPolygon = result.map((k, i) => {
+      return (
+        <Line
+          points={this.handlePoints(k, devided)}
+          shadowBlur={10}
+          closed={true}
+          stroke="red"
+        >
+        </Line>
+      )
+    });
+    return resultPolygon;
+  }
   render() {
     const props = {
       action: "https://www.mocky.io/v2/5cc8019d300000980a055e76",
@@ -219,8 +248,13 @@ class Shape extends React.Component {
             img.src = res;
             const width = img.width;
             const height = img.height;
-            img.width = 500;
-            img.height = 500 * height / width;
+            if (height < width) {
+              img.width = 500;
+              img.height = 500 * height / width;
+            } else {
+              img.width = 500 * width / height;
+              img.height = 500;
+            }
             img.onload = () => {
               this.setState({
                 width: width,
@@ -270,16 +304,30 @@ class Shape extends React.Component {
                     <br />
                     {this.state.defaultKey === "circle" ? (
                       <React.Fragment>
-                        最小圆心距：<InputNumber key='min_dist' min={1} defaultValue={this.state.min_dist} onChange={this.onChangeMinDist} />   <br />
-                        Canny边缘检测高阈值: <InputNumber key='param1' min={1} max={100} defaultValue={this.state.param1} onChange={this.onChangeParam1} />   <br />
-                        圆心检测阈值:<InputNumber key='param2' min={1} max={100} defaultValue={this.state.param2} onChange={this.onChangeParam2} />   <br />
-                        允许检测到的圆的最小半径:<InputNumber key='min_radius' defaultValue={this.state.min_radius} min={0} onChange={this.onChangeMinRadius} />   <br />
-                        允许检测到的圆的最大半径: <InputNumber key='max_radius' defaultValue={this.state.max_radius} min={0} onChange={this.onChangeMaxRadius} />   <br />
+                        <Tooltip placement="right" title={"最小圆心距"}>
+                          最小圆心距：<InputNumber key='min_dist' min={1} defaultValue={this.state.min_dist} onChange={this.onChangeMinDist} />
+                        </Tooltip>  <br />
+                        <Tooltip placement="right" title={"阈值越大检测圆边界时，要求的亮度梯度越大，一些灰灰的不明显的边界就会略去"}>
+                          Canny边缘检测高阈值: <InputNumber key='param1' min={1} max={100} defaultValue={this.state.param1} onChange={this.onChangeParam1} />
+                        </Tooltip>  <br />
+                        <Tooltip placement="right" title={"阈值越小，越多假的圆会被检测到"}>
+                          圆心检测阈值:<InputNumber key='param2' min={1} max={100} defaultValue={this.state.param2} onChange={this.onChangeParam2} />
+                        </Tooltip>  <br />
+                        <Tooltip placement="right" title={"允许检测到的圆的最小半径"}>
+                          最小半径:<InputNumber key='min_radius' defaultValue={this.state.min_radius} min={0} onChange={this.onChangeMinRadius} />
+                        </Tooltip>   <br />
+                        <Tooltip placement="right" title={"允许检测到的圆的最大半径"}>
+                          最大半径: <InputNumber key='max_radius' defaultValue={this.state.max_radius} min={0} onChange={this.onChangeMaxRadius} />
+                        </Tooltip>  <br />
                       </React.Fragment>
                     ) : (
                         <React.Fragment>
-                          二值化阈值：<InputNumber key='thresh' min={0} max={255} step={1} defaultValue={this.state.thresh} onChange={this.onChangeThresh} />   <br />
-                          轮廓近似算法相关参数: <InputNumber key='epsilon_rate' defaultValue={this.state.epsilon_rate} min={0.01} max={0.05} step={0.001} onChange={this.onChangeEpsionRate} />   <br />
+                          <Tooltip placement="right" title={"利用设定的阈值判断图像像素为0还是255"}>
+                            二值化阈值：<InputNumber key='thresh' min={0} max={255} step={1} defaultValue={this.state.thresh} onChange={this.onChangeThresh} />
+                          </Tooltip> <br />
+                          <Tooltip placement="right" title={"轮廓近似算法相关参数，一般在0.01~0.05之间"}>
+                            轮廓近似算法相关参数: <InputNumber key='epsilon_rate' defaultValue={this.state.epsilon_rate} min={0.01} max={0.05} step={0.001} onChange={this.onChangeEpsionRate} />
+                          </Tooltip> <br />
                         </React.Fragment>
                       )}
                   </React.Fragment>
@@ -310,28 +358,45 @@ class Shape extends React.Component {
                               <Option value={"circle"} key={"圆形"}>圆形</Option>
                             </Select>
                             <br />
-                            选择查看的结果序号：<Select style={{ width: 80 }} defaultValue={this.state.selectDefaultIndex} onChange={this.onChangeSelectIndex}>
-                              {this.state.result.results.map((k, i) => {
-                                return (<Option value={i} key={k + i}>{i + 1}</Option>)
-                              })}
-                            </Select>
-                            <Card title={"第" + (this.state.selectDefaultIndex + 1) + "组结果"} key={"circle" + this.state.selectDefaultIndex}>
-                              <Stage
-                                width={this.state.img.width}
-                                height={this.state.img.height}
-                              >
-                                <Layer>
-                                  <Image image={this.state.img} style={{ width: "100%" }} />
-                                  <Circle
-                                    x={this.state.result.results[this.state.selectDefaultIndex][0] * this.state.img.width / this.state.width}
-                                    y={this.state.result.results[this.state.selectDefaultIndex][1] * this.state.img.width / this.state.width}
-                                    radius={this.state.result.results[this.state.selectDefaultIndex][2] * this.state.img.width / this.state.width}
-                                    stroke="red"
+                            <Tabs defaultActiveKey="1">
+                              <TabPane tab="所有识别内容" key="1">
+                                <Card title={"所有识别结果"} key={"Allcircle"}>
+                                  <Stage
+                                    width={this.state.img.width}
+                                    height={this.state.img.height}
                                   >
-                                  </Circle>
-                                </Layer>
-                              </Stage>
-                            </Card>
+                                    <Layer>
+                                      <Image image={this.state.img} style={{ width: "100%" }} />
+                                      {this.renderAllCircle(this.state.result.results, this.state.img.width / this.state.width)}
+                                    </Layer>
+                                  </Stage>
+                                </Card>
+                              </TabPane>
+                              <TabPane tab="具体识别内容" key="2">
+                                选择查看的结果序号：<Select style={{ width: 80 }} defaultValue={this.state.selectDefaultIndex} onChange={this.onChangeSelectIndex}>
+                                  {this.state.result.results.map((k, i) => {
+                                    return (<Option value={i} key={k + i}>{i + 1}</Option>)
+                                  })}
+                                </Select>
+                                <Card title={"第" + (this.state.selectDefaultIndex + 1) + "组结果"} key={"circle" + this.state.selectDefaultIndex}>
+                                  <Stage
+                                    width={this.state.img.width}
+                                    height={this.state.img.height}
+                                  >
+                                    <Layer>
+                                      <Image image={this.state.img} style={{ width: "100%" }} />
+                                      <Circle
+                                        x={this.state.result.results[this.state.selectDefaultIndex][0] * this.state.img.width / this.state.width}
+                                        y={this.state.result.results[this.state.selectDefaultIndex][1] * this.state.img.width / this.state.width}
+                                        radius={this.state.result.results[this.state.selectDefaultIndex][2] * this.state.img.width / this.state.width}
+                                        stroke="red"
+                                      >
+                                      </Circle>
+                                    </Layer>
+                                  </Stage>
+                                </Card>
+                              </TabPane>
+                            </Tabs>
                           </React.Fragment>
                         )}
                     </React.Fragment>
@@ -345,28 +410,45 @@ class Shape extends React.Component {
                                 <Option value={this.state.defaultKey} key={this.handleName(this.state.defaultKey)}>{this.handleName(this.state.defaultKey)}</Option>
                               </Select>
                               <br />
-                              选择查看的结果序号：<Select style={{ width: 80 }} defaultValue={this.state.selectDefaultIndex} onChange={this.onChangeSelectIndex}>
-                                {this.state.result.results[this.state.defaultKey].map((k, i) => {
-                                  return (<Option value={i} key={k + i}>{i + 1}</Option>)
-                                })}
-                              </Select>
-                              <Card title={"第" + (this.state.selectDefaultIndex + 1) + "组结果"} key={"circle" + this.state.selectDefaultIndex}>
-                                <Stage
-                                  width={this.state.img.width}
-                                  height={this.state.img.height}
-                                >
-                                  <Layer>
-                                    <Image image={this.state.img} style={{ width: "100%" }} />
-                                    <Line
-                                      points={this.handlePoints(this.state.result.results[this.state.defaultKey][this.state.selectDefaultIndex], this.state.width / this.state.img.width)}
-                                      shadowBlur={10}
-                                      closed={true}
-                                      stroke="red"
+                              <Tabs defaultActiveKey="1">
+                                <TabPane tab="所有识别内容" key="1">
+                                  <Card title={"所有识别结果"} key={"AllPolygon"}>
+                                    <Stage
+                                      width={this.state.img.width}
+                                      height={this.state.img.height}
                                     >
-                                    </Line>
-                                  </Layer>
-                                </Stage>
-                              </Card>
+                                      <Layer>
+                                        <Image image={this.state.img} style={{ width: "100%" }} />
+                                        {this.renderAllPolygon(this.state.result.results[this.state.defaultKey], this.state.width / this.state.img.width)}
+                                      </Layer>
+                                    </Stage>
+                                  </Card>
+                                </TabPane>
+                                <TabPane tab="具体识别内容" key="2">
+                                  选择查看的结果序号：<Select style={{ width: 80 }} defaultValue={this.state.selectDefaultIndex} onChange={this.onChangeSelectIndex}>
+                                    {this.state.result.results[this.state.defaultKey].map((k, i) => {
+                                      return (<Option value={i} key={k + i}>{i + 1}</Option>)
+                                    })}
+                                  </Select>
+                                  <Card title={"第" + (this.state.selectDefaultIndex + 1) + "组结果"} key={"circle" + this.state.selectDefaultIndex}>
+                                    <Stage
+                                      width={this.state.img.width}
+                                      height={this.state.img.height}
+                                    >
+                                      <Layer>
+                                        <Image image={this.state.img} style={{ width: "100%" }} />
+                                        <Line
+                                          points={this.handlePoints(this.state.result.results[this.state.defaultKey][this.state.selectDefaultIndex], this.state.width / this.state.img.width)}
+                                          shadowBlur={10}
+                                          closed={true}
+                                          stroke="red"
+                                        >
+                                        </Line>
+                                      </Layer>
+                                    </Stage>
+                                  </Card>
+                                </TabPane>
+                              </Tabs>
                             </React.Fragment>
                           )}
                       </React.Fragment>

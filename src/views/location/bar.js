@@ -139,8 +139,13 @@ class Bar extends React.Component {
             img.src = res;
             const width = img.width;
             const height = img.height;
-            img.width = 500;
-            img.height = 500 * height / width;
+            if (height < width) {
+              img.width = 500;
+              img.height = 500 * height / width;
+            } else {
+              img.width = 500 * width / height;
+              img.height = 500;
+            }
             img.onload = () => {
               this.setState({
                 width: width,
