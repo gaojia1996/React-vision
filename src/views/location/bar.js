@@ -2,6 +2,7 @@ import React from 'react';
 import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col, Switch, Select, Card } from 'antd';
 import queryString from 'query-string';
 import { Stage, Layer, Line, Image } from 'react-konva';
+import config from '../../config';
 const { Content } = Layout;
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -38,7 +39,7 @@ class Bar extends React.Component {
       resultShow: false,
       uploading: true,
     });
-    const url = "http://10.3.242.229:5000/localization/code";
+    const url = config.visionUrl + "/localization/code";
     const params = {
       filter_qrcode: this.state.defaultKey,
     };
@@ -178,7 +179,11 @@ class Bar extends React.Component {
               <Upload {...props}>
                 {this.state.showDragger
                   ? uploadButton
-                  : <img src={this.state.base64} alt="照片" style={{ width: "50%", }} />}
+                  : (
+                    <React.Fragment>
+                      <img src={this.state.base64} alt="照片" style={{ width: "50%", }} />
+                    </React.Fragment>
+                  )}
               </Upload>
               <Row>
                 是否过滤图片中的二维码：<Switch checkedChildren="是" unCheckedChildren="否" defaultChecked onChange={this.onChange} />
@@ -227,7 +232,6 @@ class Bar extends React.Component {
                                 <Image image={this.state.img} style={{ width: "100%" }} />
                                 <Line
                                   points={this.handlePoints(this.state.result.results[this.state.selectDefaultValue][this.state.selectDefaultIndex][1], this.state.width / this.state.img.width)}
-                                  shadowBlur={10}
                                   stroke="red"
                                   closed={true}
                                 >

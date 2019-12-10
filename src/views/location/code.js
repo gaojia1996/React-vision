@@ -2,6 +2,7 @@ import React from 'react';
 import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col } from 'antd';
 import queryString from 'query-string';
 import { Stage, Layer, Rect, Image } from 'react-konva';
+import config from '../../config';
 const { Content } = Layout;
 const { TabPane } = Tabs;
 
@@ -30,7 +31,7 @@ class Code extends React.Component {
     this.setState({
       uploading: true, //使得上传按钮变成loading状态
     });
-    const url = "http://10.3.242.229:5000/localization/code";
+    const url = config.visionUrl + "/localization/code";
     const params = {};
     const body = {
       img: this.state.base64,

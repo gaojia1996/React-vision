@@ -1,7 +1,8 @@
 import React from 'react';
 import { Breadcrumb, Layout, Upload, Icon, Button, message, Row, Col, Select, InputNumber, Card, Tooltip, Tabs } from 'antd';
 import queryString from 'query-string';
-import { Stage, Layer, Line, Circle, Image } from 'react-konva';
+import { Stage, Layer, Line, Circle, Image, Text } from 'react-konva';
+import config from '../../config';
 const { TabPane } = Tabs;
 const { Content } = Layout;
 const { Option } = Select;
@@ -63,7 +64,7 @@ class Shape extends React.Component {
       required_cls: this.state.defaultKey,
     }
     const params = this.state.defaultKey === "circle" ? paramsCircle : paramPolygon;
-    const url = "http://10.3.242.229:5000/localization/shape";
+    const url = config.visionUrl + "/localization/shape";
     const body = {
       img: this.state.base64,
       category: this.state.defaultKey === "circle" ? "circle" : "polygon",
@@ -198,6 +199,7 @@ class Shape extends React.Component {
           y={k[1] * devided}
           radius={k[2] * devided}
           stroke="red"
+          key={'circle' + i}
         >
         </Circle>
       )
@@ -209,14 +211,21 @@ class Shape extends React.Component {
       return (
         <Line
           points={this.handlePoints(k, devided)}
-          shadowBlur={10}
           closed={true}
           stroke="red"
+          key={'polygon' + i}
         >
         </Line>
       )
     });
     return resultPolygon;
+  }
+  handleBLC(devided) {
+    let array = [0, 22, 0, 25, 20, 25, 20, 20];
+    array[4] = 20 * devided;
+    array[6] = 20 * devided;
+    console.log(array)
+    return array;
   }
   render() {
     const props = {
@@ -236,10 +245,6 @@ class Shape extends React.Component {
           .then((res) => {
             this.setState(state => ({
               base64: res, //图片base64加密后格式，用于显示图片同时发给后台
-              showDragger: false, //上传框框中设置为展示用户上传的图片
-              showButton: false,
-              resultShow: false,
-              selectDefaultIndex: 0,
             }));
             return res;
           })
@@ -261,6 +266,9 @@ class Shape extends React.Component {
                 height: height,
                 img: img,
                 selectDefaultIndex: 0,
+                showDragger: false, //上传框框中设置为展示用户上传的图片
+                showButton: false,
+                resultShow: false,
               });
             };
             return false;
@@ -275,7 +283,7 @@ class Shape extends React.Component {
         <p className="ant-upload-text">点击上传图片</p>
         <p className="ant-upload-hint">请勿上传机密图片</p>
       </React.Fragment>
-    );
+    );console.log(this.state.width)
     return (
       <Content style={{ margin: '10px 16px' }}>
         <Breadcrumb style={{ margin: '16px 0' }}>
@@ -288,8 +296,20 @@ class Shape extends React.Component {
               <Upload {...props}>
                 {this.state.showDragger
                   ? uploadButton
-                  : <img src={this.state.base64} alt="照片" style={{ width: "50%", }} />}
+                  : <img src={this.state.base64} alt="照片" style={{ width: "60%", }} />}
               </Upload>
+              {this.state.showDragger ? null : (
+                <Stage width={300} height={50}>
+                  <Layer>
+                    <Line
+                      points={this.handleBLC(this.state.img.width / this.state.width)}
+                      closed={false}
+                      stroke="black"
+                    />
+                    <Text text="20" />
+                  </Layer>
+                </Stage>
+              )}
               <Row>
                 {this.state.showDragger ? null : (
                   <React.Fragment>
@@ -439,7 +459,6 @@ class Shape extends React.Component {
                                         <Image image={this.state.img} style={{ width: "100%" }} />
                                         <Line
                                           points={this.handlePoints(this.state.result.results[this.state.defaultKey][this.state.selectDefaultIndex], this.state.width / this.state.img.width)}
-                                          shadowBlur={10}
                                           closed={true}
                                           stroke="red"
                                         >
