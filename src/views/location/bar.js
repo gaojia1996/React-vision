@@ -123,18 +123,6 @@ class Bar extends React.Component {
             resolve(reader.result);
           }, false);
         })
-          .then((res) => {
-            this.setState(state => ({
-              base64: res, //图片base64加密后格式，用于显示图片同时发给后台
-              showDragger: false, //上传框框中设置为展示用户上传的图片
-              showButton: false, //按钮变灰无法点击
-              resultShow: false, //将上一次的结果不显示
-              selectDefaultValue: null, //select选择框中显示的值
-              selectDefaultIndex: 0, //select选择框中显示的第几组结果
-              result: null, //存储返回结果
-            }));
-            return res;
-          })
           .then((res) => { //将base64之后的数据重新new一个image对象，修改宽、高用于结果中的canvas画图
             var img = new window.Image();
             img.src = res;
@@ -152,6 +140,13 @@ class Bar extends React.Component {
                 width: width,
                 height: height,
                 img: img,
+                base64: res, //图片base64加密后格式，用于显示图片同时发给后台
+                showDragger: false, //上传框框中设置为展示用户上传的图片
+                showButton: false, //按钮变灰无法点击
+                resultShow: false, //将上一次的结果不显示
+                selectDefaultValue: null, //select选择框中显示的值
+                selectDefaultIndex: 0, //select选择框中显示的第几组结果
+                result: null, //存储返回结果
               });
             };
             return false;

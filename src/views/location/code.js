@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col } from 'antd';
+import { Breadcrumb, Layout, Upload, Icon, Button, message, Tabs, Row, Col, Switch } from 'antd';
 import queryString from 'query-string';
 import { Stage, Layer, Rect, Image } from 'react-konva';
 import config from '../../config';
@@ -19,8 +19,12 @@ class Code extends React.Component {
       width: 0, //原图图的宽
       height: 0, //原图的高
       img: null, //新宽高的image对象
+      defaultKey: false, //默认显示的页面，false表示是上传页面，true是相机流
+      fetchUploading: false, //获取相机照片按钮的uploading表示标志
     }
     this.handleUpload = this.handleUpload.bind(this);
+    this.onChangePage = this.onChangePage.bind(this);
+    this.handleFetch = this.handleFetch.bind(this);
   }
   getBase64(img, callback) { //回调函数形式获取图片base64格式
     const reader = new FileReader();
@@ -78,6 +82,16 @@ class Code extends React.Component {
   handleRotation(x1, y1, x2, y2) {
     return (Math.atan2(y2 - y1, x2 - x1) / Math.PI * 180);
   }
+  onChangePage(checked) {
+    this.setState({
+      defaultKey: checked,
+    });
+  }
+  handleFetch(){
+    this.setState({
+      uploading: true, //使得上传按钮变成loading状态
+    });
+  }
   render() {
     const props = {
       action: "https://www.mocky.io/v2/5cc8019d300000980a055e76",
@@ -93,15 +107,6 @@ class Code extends React.Component {
             resolve(reader.result);
           }, false);
         })
-          .then((res) => {
-            this.setState(state => ({
-              base64: res, //图片base64加密后格式，用于显示图片同时发给后台
-              showDragger: false, //上传框框中设置为展示用户上传的图片
-              showButton: false, //按钮变灰无法点击
-              resultShow: false, //将上一次的结果不显示
-            }));
-            return (res);
-          })
           .then((res) => { //将base64之后的数据重新new一个image对象，修改宽、高用于结果中的canvas画图
             var img = new window.Image();
             img.src = res;
@@ -119,6 +124,10 @@ class Code extends React.Component {
                 width: width,
                 height: height,
                 img: img,
+                base64: res, //图片base64加密后格式，用于显示图片同时发给后台
+                showDragger: false, //上传框框中设置为展示用户上传的图片
+                showButton: false, //按钮变灰无法点击
+                resultShow: false, //将上一次的结果不显示
               });
             };
             return false;
@@ -141,25 +150,42 @@ class Code extends React.Component {
           <Breadcrumb.Item>二维码识别</Breadcrumb.Item>
         </Breadcrumb>
         <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
-          <Row>
-            {/* 是否切换相机流：<Switch checkedChildren="是" unCheckedChildren="否" defaultChecked onChange={this.onChange} /> */}
+          <Row style={{ marginBottom: 16 }}>
+            是否切换相机流：<Switch checkedChildren="是" unCheckedChildren="否" defaultChecked={false} onChange={this.onChangePage} />
+            <br />
           </Row>
           <Row>
             <Col span={12}>
-              <Upload {...props}>
-                {this.state.showDragger
-                  ? uploadButton
-                  : <img src={this.state.base64} alt="照片" style={{ width: this.state.img.width, }} />}
-              </Upload>
-              <Button
-                type="primary"
-                onClick={this.handleUpload}
-                disabled={this.state.showButton}
-                loading={this.state.uploading}
-                style={{ marginTop: 16 }}
-              >
-                {this.state.uploading ? '上传中' : '开始上传'}
-              </Button>
+              {this.state.defaultKey ? (
+                <React.Fragment>
+                  <Button
+                    type="primary"
+                    onClick={this.handleFetch}
+                    loading={this.state.fetchUploading}
+                    style={{ marginTop: 16 }}
+                  >
+                    {this.state.fetchUploading ? '获取中' : '获取相机最新照片'}
+                  </Button>
+                </React.Fragment>
+              ) : (
+                  <React.Fragment>
+                    <Upload {...props}>
+                      {this.state.showDragger
+                        ? uploadButton
+                        : <img src={this.state.base64} alt="照片" style={{ width: this.state.img.width, }} />}
+                    </Upload>
+                    <Button
+                      type="primary"
+                      onClick={this.handleUpload}
+                      disabled={this.state.showButton}
+                      loading={this.state.uploading}
+                      style={{ marginTop: 16 }}
+                    >
+                      {this.state.uploading ? '上传中' : '开始上传'}
+                    </Button>
+                  </React.Fragment>
+                )}
+
             </Col>
             <Col span={12}>
               {this.state.resultShow ? (
