@@ -29,6 +29,7 @@ class Shape extends React.Component {
       height: 0, //原图的高
       img: null, //新宽高的image对象
       selectDefaultIndex: 0,
+      text: "",
     }
     this.handleUpload = this.handleUpload.bind(this);
     this.onChangeSelect = this.onChangeSelect.bind(this);
@@ -200,6 +201,16 @@ class Shape extends React.Component {
           radius={k[2] * devided}
           stroke="red"
           key={'circle' + i}
+          onMouseOver={() => {
+            this.setState({
+              text: "圆形结果" + (i + 1),
+            })
+          }}
+          onMouseOut={() => {
+            this.setState({
+              text: "",
+            })
+          }}
         >
         </Circle>
       )
@@ -214,6 +225,16 @@ class Shape extends React.Component {
           closed={true}
           stroke="red"
           key={'polygon' + i}
+          onMouseOver={() => {
+            this.setState({
+              text: this.handleName(this.state.defaultKey) + "结果" + (i + 1),
+            })
+          }}
+          onMouseOut={() => {
+            this.setState({
+              text: "",
+            })
+          }}
         >
         </Line>
       )
@@ -221,10 +242,9 @@ class Shape extends React.Component {
     return resultPolygon;
   }
   handleBLC(devided) {
-    let array = [0, 22, 0, 25, 20, 25, 20, 20];
-    array[4] = 20 * devided;
-    array[6] = 20 * devided;
-    console.log(array)
+    let array = [0, 20, 0, 25, 50, 25, 50, 20];
+    array[4] = 50 * devided;
+    array[6] = 50 * devided;
     return array;
   }
   render() {
@@ -242,33 +262,29 @@ class Shape extends React.Component {
             resolve(reader.result);
           }, false);
         })
-          .then((res) => {
-            this.setState(state => ({
-              base64: res, //图片base64加密后格式，用于显示图片同时发给后台
-            }));
-            return res;
-          })
           .then((res) => { //将base64之后的数据重新new一个image对象，修改宽、高用于结果中的canvas画图
-            var img = new window.Image();
+            let img = new window.Image();
             img.src = res;
-            const width = img.width;
-            const height = img.height;
-            if (height < width) {
-              img.width = 500;
-              img.height = 500 * height / width;
-            } else {
-              img.width = 500 * width / height;
-              img.height = 500;
-            }
             img.onload = () => {
+              const width = img.width;
+              const height = img.height;
+              if (height < width) {
+                img.width = 500;
+                img.height = 500 * height / width;
+              } else {
+                img.width = 500 * width / height;
+                img.height = 500;
+              }
               this.setState({
+                base64: res, //图片base64加密后格式，用于显示图片同时发给后台
                 width: width,
                 height: height,
                 img: img,
-                selectDefaultIndex: 0,
+                selectDefaultIndex: 0, //select选择框中显示的第几组结果
+                showButton: false, //按钮变灰无法点击
+                resultShow: false, //将上一次的结果不显示
+                result: null, //存储返回结果
                 showDragger: false, //上传框框中设置为展示用户上传的图片
-                showButton: false,
-                resultShow: false,
               });
             };
             return false;
@@ -283,7 +299,7 @@ class Shape extends React.Component {
         <p className="ant-upload-text">点击上传图片</p>
         <p className="ant-upload-hint">请勿上传机密图片</p>
       </React.Fragment>
-    );console.log(this.state.width)
+    );
     return (
       <Content style={{ margin: '10px 16px' }}>
         <Breadcrumb style={{ margin: '16px 0' }}>
@@ -296,7 +312,7 @@ class Shape extends React.Component {
               <Upload {...props}>
                 {this.state.showDragger
                   ? uploadButton
-                  : <img src={this.state.base64} alt="照片" style={{ width: "60%", }} />}
+                  : <img src={this.state.base64} alt="照片" style={{ width: this.state.img.width, }} />}
               </Upload>
               {this.state.showDragger ? null : (
                 <Stage width={300} height={50}>
@@ -306,7 +322,7 @@ class Shape extends React.Component {
                       closed={false}
                       stroke="black"
                     />
-                    <Text text="20" />
+                    <Text text="50" />
                   </Layer>
                 </Stage>
               )}
@@ -383,10 +399,11 @@ class Shape extends React.Component {
                                 <Card title={"所有识别结果"} key={"Allcircle"}>
                                   <Stage
                                     width={this.state.img.width}
-                                    height={this.state.img.height}
+                                    height={this.state.img.height + 50}
                                   >
                                     <Layer>
                                       <Image image={this.state.img} style={{ width: "100%" }} />
+                                      <Text x={10} y={this.state.img.height + 5} text={this.state.text} fontSize={24} fill={"black"} />
                                       {this.renderAllCircle(this.state.result.results, this.state.img.width / this.state.width)}
                                     </Layer>
                                   </Stage>
@@ -435,10 +452,11 @@ class Shape extends React.Component {
                                   <Card title={"所有识别结果"} key={"AllPolygon"}>
                                     <Stage
                                       width={this.state.img.width}
-                                      height={this.state.img.height}
+                                      height={this.state.img.height + 50}
                                     >
                                       <Layer>
                                         <Image image={this.state.img} style={{ width: "100%" }} />
+                                        <Text x={10} y={this.state.img.height + 5} text={this.state.text} fontSize={24} fill={"black"} />
                                         {this.renderAllPolygon(this.state.result.results[this.state.defaultKey], this.state.width / this.state.img.width)}
                                       </Layer>
                                     </Stage>

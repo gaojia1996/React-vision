@@ -105,16 +105,16 @@ class Code extends React.Component {
           .then((res) => { //将base64之后的数据重新new一个image对象，修改宽、高用于结果中的canvas画图
             var img = new window.Image();
             img.src = res;
-            const width = img.width;
-            const height = img.height;
-            if (height < width) {
-              img.width = 500;
-              img.height = 500 * height / width;
-            } else {
-              img.width = 500 * width / height;
-              img.height = 500;
-            }
             img.onload = () => {
+              const width = img.width;
+              const height = img.height;
+              if (height < width) {
+                img.width = 500;
+                img.height = 500 * height / width;
+              } else {
+                img.width = 500 * width / height;
+                img.height = 500;
+              }
               this.setState({
                 width: width,
                 height: height,
@@ -142,11 +142,14 @@ class Code extends React.Component {
         </Breadcrumb>
         <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
           <Row>
+            {/* 是否切换相机流：<Switch checkedChildren="是" unCheckedChildren="否" defaultChecked onChange={this.onChange} /> */}
+          </Row>
+          <Row>
             <Col span={12}>
               <Upload {...props}>
                 {this.state.showDragger
                   ? uploadButton
-                  : <img src={this.state.base64} alt="照片" style={{ width: "50%", }} />}
+                  : <img src={this.state.base64} alt="照片" style={{ width: this.state.img.width, }} />}
               </Upload>
               <Button
                 type="primary"
