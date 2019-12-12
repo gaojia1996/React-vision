@@ -21,6 +21,7 @@ class Code extends React.Component {
       img: null, //新宽高的image对象
       defaultKey: false, //默认显示的页面，false表示是上传页面，true是相机流
       fetchUploading: false, //获取相机照片按钮的uploading表示标志
+      fetchCamera: false, //获取相机最新照片的标志
     }
     this.handleUpload = this.handleUpload.bind(this);
     this.onChangePage = this.onChangePage.bind(this);
@@ -85,12 +86,66 @@ class Code extends React.Component {
   onChangePage(checked) {
     this.setState({
       defaultKey: checked,
+      base64: null,
+      fetchCamera: false,
+      showDragger: true,
+      resultShow: false, //结果展示与否
     });
   }
-  handleFetch(){
+  handleFetch = () => {
     this.setState({
-      uploading: true, //使得上传按钮变成loading状态
+      fetchUploading: true, //使得上传按钮变成loading状态
+      resultShow: false, //结果展示与否
     });
+    const url = config.cameraUrl + "/camera/latest_image?exposure_time=300";
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        "Accept": '*/*',
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "*",
+      },
+      mode: 'cors',
+    })
+      .then((res) => {
+        return res.json();
+      })
+      .then(res => {
+        message.success('成功获取相机最新的图片~');
+        var img = new window.Image();
+        img.src = res.img;
+        img.onload = () => {
+          const width = img.width;
+          const height = img.height;
+          if (height < width) {
+            img.width = 500;
+            img.height = 500 * height / width;
+          } else {
+            img.width = 500 * width / height;
+            img.height = 500;
+          }
+          this.setState({
+            width: width,
+            height: height,
+            img: img,
+            base64: res.img, //图片base64加密后格式，用于显示图片同时发给后台
+            fetchCamera: true,
+            fetchUploading: false,
+            showButton: false, //按钮变灰无法点击
+            resultShow: false, //将上一次的结果不显示
+          });
+        };
+      })
+      .catch(err => {
+        this.setState({ //将按钮变成可操作，表示重新上传
+          fetchUploading: false,
+          fetchCamera: false,
+        });
+        message.error('获取相机最新的图片发生错误~请重试');
+        console.log(err);
+      });
   }
   render() {
     const props = {
@@ -158,14 +213,40 @@ class Code extends React.Component {
             <Col span={12}>
               {this.state.defaultKey ? (
                 <React.Fragment>
-                  <Button
-                    type="primary"
-                    onClick={this.handleFetch}
-                    loading={this.state.fetchUploading}
-                    style={{ marginTop: 16 }}
-                  >
-                    {this.state.fetchUploading ? '获取中' : '获取相机最新照片'}
-                  </Button>
+                  <Row>
+                    <Button
+                      type="primary"
+                      onClick={this.handleFetch}
+                      loading={this.state.fetchUploading}
+                      style={{ marginBottom: 16 }}
+                    >
+                      {this.state.fetchUploading ? '获取中' : '获取相机最新照片'}
+                    </Button>
+                  </Row>
+                  <Row>
+                    {this.state.fetchCamera ? (
+                      <React.Fragment>
+                        <Row>
+                          <div style={{ width: "90%", height: this.state.img.height + 40, border: "1px dashed #d9d9d9", borderRadius: "4px" }}>
+                            <center>
+                              <img src={this.state.base64} alt="相机最新照片" style={{ width: this.state.img.width, marginTop: 20 }} />
+                            </center>
+                          </div>
+                        </Row>
+                        <Row>
+                          <Button
+                            type="primary"
+                            onClick={this.handleUpload}
+                            disabled={this.state.showButton}
+                            loading={this.state.uploading}
+                            style={{ marginTop: 16 }}
+                          >
+                            {this.state.uploading ? '上传中' : '开始上传'}
+                          </Button>
+                        </Row>
+                      </React.Fragment>
+                    ) : null}
+                  </Row>
                 </React.Fragment>
               ) : (
                   <React.Fragment>
@@ -185,7 +266,6 @@ class Code extends React.Component {
                     </Button>
                   </React.Fragment>
                 )}
-
             </Col>
             <Col span={12}>
               {this.state.resultShow ? (

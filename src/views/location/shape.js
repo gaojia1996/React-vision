@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breadcrumb, Layout, Upload, Icon, Button, message, Row, Col, Select, InputNumber, Card, Tooltip, Tabs } from 'antd';
+import { Breadcrumb, Layout, Upload, Icon, Button, message, Row, Col, Select, InputNumber, Card, Tooltip, Tabs, Switch } from 'antd';
 import queryString from 'query-string';
 import { Stage, Layer, Line, Circle, Image, Text } from 'react-konva';
 import config from '../../config';
@@ -30,6 +30,9 @@ class Shape extends React.Component {
       img: null, //新宽高的image对象
       selectDefaultIndex: 0,
       text: "",
+      defaultKeyPage: false, //默认显示相机流与否
+      fetchCamera: false, //获取相机最新照片的标志
+      fetchUploading: false, //获取相机照片按钮的uploading表示标志
     }
     this.handleUpload = this.handleUpload.bind(this);
     this.onChangeSelect = this.onChangeSelect.bind(this);
@@ -41,6 +44,8 @@ class Shape extends React.Component {
     this.onChangeThresh = this.onChangeThresh.bind(this);
     this.onChangeEpsionRate = this.onChangeEpsionRate.bind(this);
     this.onChangeSelectIndex = this.onChangeSelectIndex.bind(this);
+    this.onChangePage = this.onChangePage.bind(this);
+    this.handleFetch = this.handleFetch.bind(this);
   }
   getBase64(img, callback) { //回调函数形式获取图片base64格式
     const reader = new FileReader();
@@ -247,6 +252,78 @@ class Shape extends React.Component {
     array[6] = 50 * devided;
     return array;
   }
+  onChangePage(checked) {
+    this.setState({
+      defaultKeyPage: checked,
+      base64: null,
+      fetchCamera: false,
+      showDragger: true,
+      resultShow: false, //结果展示与否
+      defaultKey: "circle", //默认选择的筛选形状
+      min_dist: 20,
+      param1: 100,
+      param2: 100,
+      min_radius: 0,
+      max_radius: 0,
+      thresh: 127,
+      epsilon_rate: 0.02,
+    });
+  }
+  handleFetch = () => {
+    this.setState({
+      fetchUploading: true, //使得上传按钮变成loading状态
+      resultShow: false, //结果展示与否
+    });
+    const url = config.cameraUrl + "/camera/latest_image?exposure_time=300";
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        "Accept": '*/*',
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "*",
+      },
+      mode: 'cors',
+    })
+      .then((res) => {
+        return res.json();
+      })
+      .then(res => {
+        message.success('成功获取相机最新的图片~');
+        var img = new window.Image();
+        img.src = res.img;
+        img.onload = () => {
+          const width = img.width;
+          const height = img.height;
+          if (height < width) {
+            img.width = 500;
+            img.height = 500 * height / width;
+          } else {
+            img.width = 500 * width / height;
+            img.height = 500;
+          }
+          this.setState({
+            width: width,
+            height: height,
+            img: img,
+            base64: res.img, //图片base64加密后格式，用于显示图片同时发给后台
+            fetchCamera: true,
+            fetchUploading: false,
+            showButton: false, //按钮变灰无法点击
+            resultShow: false, //将上一次的结果不显示
+          });
+        };
+      })
+      .catch(err => {
+        this.setState({ //将按钮变成可操作，表示重新上传
+          fetchUploading: false,
+          fetchCamera: false,
+        });
+        message.error('获取相机最新的图片发生错误~请重试');
+        console.log(err);
+      });
+  }
   render() {
     const props = {
       action: "https://www.mocky.io/v2/5cc8019d300000980a055e76",
@@ -307,77 +384,167 @@ class Shape extends React.Component {
           <Breadcrumb.Item>形状探测器</Breadcrumb.Item>
         </Breadcrumb>
         <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
+          <Row style={{ marginBottom: 16 }}>
+            是否切换相机流：<Switch checkedChildren="是" unCheckedChildren="否" defaultChecked={false} onChange={this.onChangePage} />
+            <br />
+          </Row>
           <Row>
             <Col span={12}>
-              <Upload {...props}>
-                {this.state.showDragger
-                  ? uploadButton
-                  : <img src={this.state.base64} alt="照片" style={{ width: this.state.img.width, }} />}
-              </Upload>
-              {this.state.showDragger ? null : (
-                <Stage width={300} height={50}>
-                  <Layer>
-                    <Line
-                      points={this.handleBLC(this.state.img.width / this.state.width)}
-                      closed={false}
-                      stroke="black"
-                    />
-                    <Text text="50" />
-                  </Layer>
-                </Stage>
-              )}
-              <Row>
-                {this.state.showDragger ? null : (
-                  <React.Fragment>
-                    选择筛选的形状：<Select style={{ width: 120 }} defaultValue={"circle"} onChange={this.onChangeSelect}>
-                      <Option value={"circle"} key={"圆形"}>圆形</Option>
-                      <Option value={"triangle"} key={"三角形"}>三角形</Option>
-                      <Option value={"rectangle"} key={"矩形"}>矩形</Option>
-                      <Option value={"square"} key={"正方形"}>正方形</Option>
-                      <Option value={"pentagon"} key={"五边形"}>五边形</Option>
-                      <Option value={"hexagon"} key={"六边形"}>六边形</Option>
-                    </Select>
-                    <br />
-                    {this.state.defaultKey === "circle" ? (
+              {this.state.defaultKeyPage ? (
+                <React.Fragment>
+                  <Row>
+                    <Button
+                      type="primary"
+                      onClick={this.handleFetch}
+                      loading={this.state.fetchUploading}
+                      style={{ marginBottom: 16 }}
+                    >
+                      {this.state.fetchUploading ? '获取中' : '获取相机最新照片'}
+                    </Button>
+                  </Row>
+                  {this.state.fetchCamera ? (
+                    <React.Fragment>
+                      <Row>
+                        <div style={{ width: "90%", height: this.state.img.height + 40, border: "1px dashed #d9d9d9", borderRadius: "4px" }}>
+                          <center>
+                            <img src={this.state.base64} alt="相机最新照片" style={{ width: this.state.img.width, marginTop: 20 }} />
+                          </center>
+                        </div>
+                      </Row>
+                      <Stage width={300} height={50}>
+                        <Layer>
+                          <Line
+                            points={this.handleBLC(this.state.img.width / this.state.width)}
+                            closed={false}
+                            stroke="black"
+                          />
+                          <Text text="50" />
+                        </Layer>
+                      </Stage>
                       <React.Fragment>
-                        <Tooltip placement="right" title={"最小圆心距"}>
-                          最小圆心距：<InputNumber key='min_dist' min={1} defaultValue={this.state.min_dist} onChange={this.onChangeMinDist} />
-                        </Tooltip>  <br />
-                        <Tooltip placement="right" title={"阈值越大检测圆边界时，要求的亮度梯度越大，一些灰灰的不明显的边界就会略去"}>
-                          Canny边缘检测高阈值: <InputNumber key='param1' min={1} max={100} defaultValue={this.state.param1} onChange={this.onChangeParam1} />
-                        </Tooltip>  <br />
-                        <Tooltip placement="right" title={"阈值越小，越多假的圆会被检测到"}>
-                          圆心检测阈值:<InputNumber key='param2' min={1} max={100} defaultValue={this.state.param2} onChange={this.onChangeParam2} />
-                        </Tooltip>  <br />
-                        <Tooltip placement="right" title={"允许检测到的圆的最小半径"}>
-                          最小半径:<InputNumber key='min_radius' defaultValue={this.state.min_radius} min={0} onChange={this.onChangeMinRadius} />
-                        </Tooltip>   <br />
-                        <Tooltip placement="right" title={"允许检测到的圆的最大半径"}>
-                          最大半径: <InputNumber key='max_radius' defaultValue={this.state.max_radius} min={0} onChange={this.onChangeMaxRadius} />
-                        </Tooltip>  <br />
+                        选择筛选的形状：<Select style={{ width: 120 }} defaultValue={this.state.defaultKey} onChange={this.onChangeSelect}>
+                          <Option value={"circle"} key={"圆形"}>圆形</Option>
+                          <Option value={"triangle"} key={"三角形"}>三角形</Option>
+                          <Option value={"rectangle"} key={"矩形"}>矩形</Option>
+                          <Option value={"square"} key={"正方形"}>正方形</Option>
+                          <Option value={"pentagon"} key={"五边形"}>五边形</Option>
+                          <Option value={"hexagon"} key={"六边形"}>六边形</Option>
+                        </Select>
+                        <br />
+                        {this.state.defaultKey === "circle" ? (
+                          <React.Fragment>
+                            <Tooltip placement="right" title={"最小圆心距"}>
+                              最小圆心距：<InputNumber key='min_dist' min={1} defaultValue={this.state.min_dist} onChange={this.onChangeMinDist} />
+                            </Tooltip>  <br />
+                            <Tooltip placement="right" title={"阈值越大检测圆边界时，要求的亮度梯度越大，一些灰灰的不明显的边界就会略去"}>
+                              Canny边缘检测高阈值: <InputNumber key='param1' min={1} max={100} defaultValue={this.state.param1} onChange={this.onChangeParam1} />
+                            </Tooltip>  <br />
+                            <Tooltip placement="right" title={"阈值越小，越多假的圆会被检测到"}>
+                              圆心检测阈值:<InputNumber key='param2' min={1} max={500} defaultValue={this.state.param2} onChange={this.onChangeParam2} />
+                            </Tooltip>  <br />
+                            <Tooltip placement="right" title={"允许检测到的圆的最小半径"}>
+                              最小半径:<InputNumber key='min_radius' defaultValue={this.state.min_radius} min={0} onChange={this.onChangeMinRadius} />
+                            </Tooltip>   <br />
+                            <Tooltip placement="right" title={"允许检测到的圆的最大半径"}>
+                              最大半径: <InputNumber key='max_radius' defaultValue={this.state.max_radius} min={0} onChange={this.onChangeMaxRadius} />
+                            </Tooltip>  <br />
+                          </React.Fragment>
+                        ) : (
+                            <React.Fragment>
+                              <Tooltip placement="right" title={"利用设定的阈值判断图像像素为0还是255"}>
+                                二值化阈值：<InputNumber key='thresh' min={0} max={255} step={1} defaultValue={this.state.thresh} onChange={this.onChangeThresh} />
+                              </Tooltip> <br />
+                              <Tooltip placement="right" title={"轮廓近似算法相关参数，一般在0.01~0.05之间"}>
+                                轮廓近似算法相关参数: <InputNumber key='epsilon_rate' defaultValue={this.state.epsilon_rate} min={0.01} max={0.05} step={0.001} onChange={this.onChangeEpsionRate} />
+                              </Tooltip> <br />
+                            </React.Fragment>
+                          )}
                       </React.Fragment>
-                    ) : (
+                      <Button
+                        type="primary"
+                        onClick={this.handleUpload}
+                        disabled={this.state.showButton}
+                        loading={this.state.uploading}
+                        style={{ marginTop: 16 }}
+                      >
+                        {this.state.uploading ? '上传中' : '开始上传'}
+                      </Button>
+                    </React.Fragment>
+                  ) : null}
+                </React.Fragment>
+              ) : (
+                  <React.Fragment>
+                    <Upload {...props}>
+                      {this.state.showDragger
+                        ? uploadButton
+                        : <img src={this.state.base64} alt="照片" style={{ width: this.state.img.width, }} />}
+                    </Upload>
+                    {this.state.showDragger ? null : (
+                      <Stage width={300} height={50}>
+                        <Layer>
+                          <Line
+                            points={this.handleBLC(this.state.img.width / this.state.width)}
+                            closed={false}
+                            stroke="black"
+                          />
+                          <Text text="50" />
+                        </Layer>
+                      </Stage>
+                    )}
+                    <Row>
+                      {this.state.showDragger ? null : (
                         <React.Fragment>
-                          <Tooltip placement="right" title={"利用设定的阈值判断图像像素为0还是255"}>
-                            二值化阈值：<InputNumber key='thresh' min={0} max={255} step={1} defaultValue={this.state.thresh} onChange={this.onChangeThresh} />
-                          </Tooltip> <br />
-                          <Tooltip placement="right" title={"轮廓近似算法相关参数，一般在0.01~0.05之间"}>
-                            轮廓近似算法相关参数: <InputNumber key='epsilon_rate' defaultValue={this.state.epsilon_rate} min={0.01} max={0.05} step={0.001} onChange={this.onChangeEpsionRate} />
-                          </Tooltip> <br />
+                          选择筛选的形状：<Select style={{ width: 120 }} defaultValue={this.state.defaultKey} onChange={this.onChangeSelect}>
+                            <Option value={"circle"} key={"圆形"}>圆形</Option>
+                            <Option value={"triangle"} key={"三角形"}>三角形</Option>
+                            <Option value={"rectangle"} key={"矩形"}>矩形</Option>
+                            <Option value={"square"} key={"正方形"}>正方形</Option>
+                            <Option value={"pentagon"} key={"五边形"}>五边形</Option>
+                            <Option value={"hexagon"} key={"六边形"}>六边形</Option>
+                          </Select>
+                          <br />
+                          {this.state.defaultKey === "circle" ? (
+                            <React.Fragment>
+                              <Tooltip placement="right" title={"最小圆心距"}>
+                                最小圆心距：<InputNumber key='min_dist' min={1} defaultValue={this.state.min_dist} onChange={this.onChangeMinDist} />
+                              </Tooltip>  <br />
+                              <Tooltip placement="right" title={"阈值越大检测圆边界时，要求的亮度梯度越大，一些灰灰的不明显的边界就会略去"}>
+                                Canny边缘检测高阈值: <InputNumber key='param1' min={1} max={100} defaultValue={this.state.param1} onChange={this.onChangeParam1} />
+                              </Tooltip>  <br />
+                              <Tooltip placement="right" title={"阈值越小，越多假的圆会被检测到"}>
+                                圆心检测阈值:<InputNumber key='param2' min={1} max={500} defaultValue={this.state.param2} onChange={this.onChangeParam2} />
+                              </Tooltip>  <br />
+                              <Tooltip placement="right" title={"允许检测到的圆的最小半径"}>
+                                最小半径:<InputNumber key='min_radius' defaultValue={this.state.min_radius} min={0} onChange={this.onChangeMinRadius} />
+                              </Tooltip>   <br />
+                              <Tooltip placement="right" title={"允许检测到的圆的最大半径"}>
+                                最大半径: <InputNumber key='max_radius' defaultValue={this.state.max_radius} min={0} onChange={this.onChangeMaxRadius} />
+                              </Tooltip>  <br />
+                            </React.Fragment>
+                          ) : (
+                              <React.Fragment>
+                                <Tooltip placement="right" title={"利用设定的阈值判断图像像素为0还是255"}>
+                                  二值化阈值：<InputNumber key='thresh' min={0} max={255} step={1} defaultValue={this.state.thresh} onChange={this.onChangeThresh} />
+                                </Tooltip> <br />
+                                <Tooltip placement="right" title={"轮廓近似算法相关参数，一般在0.01~0.05之间"}>
+                                  轮廓近似算法相关参数: <InputNumber key='epsilon_rate' defaultValue={this.state.epsilon_rate} min={0.01} max={0.05} step={0.001} onChange={this.onChangeEpsionRate} />
+                                </Tooltip> <br />
+                              </React.Fragment>
+                            )}
                         </React.Fragment>
                       )}
+                    </Row>
+                    <Button
+                      type="primary"
+                      onClick={this.handleUpload}
+                      disabled={this.state.showButton}
+                      loading={this.state.uploading}
+                      style={{ marginTop: 16 }}
+                    >
+                      {this.state.uploading ? '上传中' : '开始上传'}
+                    </Button>
                   </React.Fragment>
                 )}
-              </Row>
-              <Button
-                type="primary"
-                onClick={this.handleUpload}
-                disabled={this.state.showButton}
-                loading={this.state.uploading}
-                style={{ marginTop: 16 }}
-              >
-                {this.state.uploading ? '上传中' : '开始上传'}
-              </Button>
             </Col>
             <Col span={12}>
               {this.state.resultShow ? (
