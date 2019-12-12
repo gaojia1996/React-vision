@@ -126,6 +126,7 @@ class Bar extends React.Component {
     this.setState({
       fetchUploading: true, //使得上传按钮变成loading状态
       resultShow: false, //结果展示与否
+      fetchCamera: false,
     });
     const url = config.cameraUrl + "/camera/latest_image?exposure_time=300";
     fetch(url, {
