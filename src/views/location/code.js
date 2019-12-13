@@ -279,30 +279,35 @@ class Code extends React.Component {
                         {this.state.result.results[0]}
                       </TabPane>
                       <TabPane tab="二维码定位" key="2">
-                        <Stage
-                          width={this.state.img.width}
-                          height={this.state.img.height}
-                        >
-                          <Layer>
-                            <Image image={this.state.img} style={{ width: "100%" }} />
-                            <Rect
-                              ref='rect'
-                              x={(this.state.result.results[1][0][0][0] / this.state.width) * this.state.img.width}
-                              y={(this.state.result.results[1][0][0][1] / this.state.height) * this.state.img.height}
-                              width={this.handleDistance(this.state.result.results[1][0][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][0][0][1] / this.state.height * this.state.img.height
-                                , this.state.result.results[1][1][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][1][0][1] / this.state.height * this.state.img.height)}
-                              height={this.handleDistance(this.state.result.results[1][0][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][0][0][1] / this.state.height * this.state.img.height
-                                , this.state.result.results[1][3][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][3][0][1] / this.state.height * this.state.img.height)}
-                              rotation={this.handleRotation(this.state.result.results[1][0][0][0], this.state.result.results[1][0][0][1]
-                                , this.state.result.results[1][1][0][0], this.state.result.results[1][1][0][1])}
-                              shadowBlur={10}
-                              stroke="red"
-                            />
-                          </Layer>
-                        </Stage>
+                        <center>
+                          <Stage
+                            width={this.state.img.width}
+                            height={this.state.img.height}
+                          >
+                            <Layer>
+                              <Image image={this.state.img} style={{ width: "100%" }} />
+                              <Rect
+                                ref='rect'
+                                x={(this.state.result.results[1][0][0][0] / this.state.width) * this.state.img.width}
+                                y={(this.state.result.results[1][0][0][1] / this.state.height) * this.state.img.height}
+                                width={this.handleDistance(this.state.result.results[1][0][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][0][0][1] / this.state.height * this.state.img.height
+                                  , this.state.result.results[1][1][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][1][0][1] / this.state.height * this.state.img.height)}
+                                height={this.handleDistance(this.state.result.results[1][0][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][0][0][1] / this.state.height * this.state.img.height
+                                  , this.state.result.results[1][3][0][0] / this.state.width * this.state.img.width, this.state.result.results[1][3][0][1] / this.state.height * this.state.img.height)}
+                                rotation={this.handleRotation(this.state.result.results[1][0][0][0], this.state.result.results[1][0][0][1]
+                                  , this.state.result.results[1][1][0][0], this.state.result.results[1][1][0][1])}
+                                shadowBlur={10}
+                                stroke="red"
+                                strokeWidth={4}
+                              />
+                            </Layer>
+                          </Stage>
+                        </center>
                       </TabPane>
                       <TabPane tab="二维码" key="3">
-                        <img src={this.state.result.results[2]} alt="照片" style={{ width: "20%", align: "center" }} />
+                        <center>
+                          <img src={this.state.result.results[2]} alt="照片" style={{ width: "30%" }} />
+                        </center>
                       </TabPane>
                     </Tabs>
                   }

@@ -20,7 +20,7 @@ class Shape extends React.Component {
       defaultKey: "circle", //默认选择的筛选形状
       min_dist: 20,
       param1: 100,
-      param2: 100,
+      param2: 50,
       min_radius: 0,
       max_radius: 0,
       thresh: 127,
@@ -33,6 +33,8 @@ class Shape extends React.Component {
       defaultKeyPage: false, //默认显示相机流与否
       fetchCamera: false, //获取相机最新照片的标志
       fetchUploading: false, //获取相机照片按钮的uploading表示标志
+      is_debugging: true, //默认显示debug信息
+      debugKey: null, //select选择的debug内容
     }
     this.handleUpload = this.handleUpload.bind(this);
     this.onChangeSelect = this.onChangeSelect.bind(this);
@@ -46,6 +48,7 @@ class Shape extends React.Component {
     this.onChangeSelectIndex = this.onChangeSelectIndex.bind(this);
     this.onChangePage = this.onChangePage.bind(this);
     this.handleFetch = this.handleFetch.bind(this);
+    this.onChangeDebugKey = this.onChangeDebugKey.bind(this);
   }
   getBase64(img, callback) { //回调函数形式获取图片base64格式
     const reader = new FileReader();
@@ -68,6 +71,7 @@ class Shape extends React.Component {
       thresh: this.state.thresh,
       epsilon_rate: this.state.epsilon_rate,
       required_cls: this.state.defaultKey,
+      is_debugging: this.state.is_debugging,
     }
     const params = this.state.defaultKey === "circle" ? paramsCircle : paramPolygon;
     const url = config.visionUrl + "/localization/shape";
@@ -100,6 +104,7 @@ class Shape extends React.Component {
           uploading: false,
           showButton: true,
           resultShow: true,
+          debugKey: this.state.defaultKey === "circle" ? null : Object.keys(res.debug)[0],
         });
       })
       .catch(err => {
@@ -182,6 +187,8 @@ class Shape extends React.Component {
         return "矩形";
       case "square":
         return "正方形";
+      case "diamond":
+        return "菱形";
       case "pentagon":
         return "五边形";
       case "hexagon":
@@ -205,6 +212,7 @@ class Shape extends React.Component {
           y={k[1] * devided}
           radius={k[2] * devided}
           stroke="red"
+          strokeWidth={4}
           key={'circle' + i}
           onMouseOver={() => {
             this.setState({
@@ -229,6 +237,7 @@ class Shape extends React.Component {
           points={this.handlePoints(k, devided)}
           closed={true}
           stroke="red"
+          strokeWidth={4}
           key={'polygon' + i}
           onMouseOver={() => {
             this.setState({
@@ -325,6 +334,11 @@ class Shape extends React.Component {
         message.error('获取相机最新的图片发生错误~请重试');
         console.log(err);
       });
+  }
+  onChangeDebugKey(value) {
+    this.setState({
+      debugKey: value,
+    })
   }
   render() {
     const props = {
@@ -429,6 +443,7 @@ class Shape extends React.Component {
                           <Option value={"triangle"} key={"三角形"}>三角形</Option>
                           <Option value={"rectangle"} key={"矩形"}>矩形</Option>
                           <Option value={"square"} key={"正方形"}>正方形</Option>
+                          <Option value={"diamond"} key={"菱形"}>菱形</Option>
                           <Option value={"pentagon"} key={"五边形"}>五边形</Option>
                           <Option value={"hexagon"} key={"六边形"}>六边形</Option>
                         </Select>
@@ -501,6 +516,7 @@ class Shape extends React.Component {
                             <Option value={"triangle"} key={"三角形"}>三角形</Option>
                             <Option value={"rectangle"} key={"矩形"}>矩形</Option>
                             <Option value={"square"} key={"正方形"}>正方形</Option>
+                            <Option value={"diamond"} key={"菱形"}>菱形</Option>
                             <Option value={"pentagon"} key={"五边形"}>五边形</Option>
                             <Option value={"hexagon"} key={"六边形"}>六边形</Option>
                           </Select>
@@ -596,6 +612,7 @@ class Shape extends React.Component {
                                         y={this.state.result.results[this.state.selectDefaultIndex][1] * this.state.img.width / this.state.width}
                                         radius={this.state.result.results[this.state.selectDefaultIndex][2] * this.state.img.width / this.state.width}
                                         stroke="red"
+                                        strokeWidth={4}
                                       >
                                       </Circle>
                                     </Layer>
@@ -648,12 +665,29 @@ class Shape extends React.Component {
                                           points={this.handlePoints(this.state.result.results[this.state.defaultKey][this.state.selectDefaultIndex], this.state.width / this.state.img.width)}
                                           closed={true}
                                           stroke="red"
+                                          strokeWidth={4}
                                         >
                                         </Line>
                                       </Layer>
                                     </Stage>
                                   </Card>
                                 </TabPane>
+                                {this.state.is_debugging ? (
+                                  <TabPane tab="debug内容" key="3">
+                                    选择查看的debug：<Select style={{ width: 150 }} defaultValue={this.state.debugKey} onChange={this.onChangeDebugKey}>
+                                      {Object.keys(this.state.result.debug).map((k, i) => {
+                                        return (
+                                          <Option value={k} key={k + i}>{k}</Option>
+                                        );
+                                      })}
+                                    </Select>
+                                    <Card title={this.state.debugKey + "结果"} key={"polygonDebug" + this.state.debugKey}>
+                                      <center>
+                                        <img src={this.state.result.debug[this.state.debugKey]} alt={this.state.debugKey + "照片" } width={this.state.img.width}></img>
+                                      </center>
+                                    </Card>
+                                  </TabPane>
+                                ) : null}
                               </Tabs>
                             </React.Fragment>
                           )}

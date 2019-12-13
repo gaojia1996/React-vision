@@ -337,20 +337,23 @@ class Bar extends React.Component {
                             {this.state.result.results[this.state.selectDefaultValue][this.state.selectDefaultIndex][0]}
                           </TabPane>
                           <TabPane tab="条形码定位" key={this.state.selectDefaultValue + this.state.selectDefaultIndex + "2"}>
-                            <Stage
-                              width={this.state.img.width}
-                              height={this.state.img.height}
-                            >
-                              <Layer>
-                                <Image image={this.state.img} style={{ width: "100%" }} />
-                                <Line
-                                  points={this.handlePoints(this.state.result.results[this.state.selectDefaultValue][this.state.selectDefaultIndex][1], this.state.width / this.state.img.width)}
-                                  stroke="red"
-                                  closed={true}
-                                >
-                                </Line>
-                              </Layer>
-                            </Stage>
+                            <center>
+                              <Stage
+                                width={this.state.img.width}
+                                height={this.state.img.height}
+                              >
+                                <Layer>
+                                  <Image image={this.state.img} style={{ width: "100%" }} />
+                                  <Line
+                                    points={this.handlePoints(this.state.result.results[this.state.selectDefaultValue][this.state.selectDefaultIndex][1], this.state.width / this.state.img.width)}
+                                    stroke="red"
+                                    strokeWidth={4}
+                                    closed={true}
+                                  >
+                                  </Line>
+                                </Layer>
+                              </Stage>
+                            </center>
                           </TabPane>
                         </Tabs>
                       </Card>
