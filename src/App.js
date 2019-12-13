@@ -54,7 +54,13 @@ class App extends React.Component {
   render() {
     return (
       <Layout style={{ minHeight: '100vh', minWidth: '100vh' }}>
-        <Sider collapsible collapsed={this.state.collapsed} onCollapse={this.onCollapse}>
+        <Sider
+          style={{
+            overflow: 'auto',
+            height: '100vh',
+            position: 'fixed',
+            left: 0,
+          }}>
           <div className="logo" />
           <Menu theme="dark" selectedKeys={this.state.selectedKeys} openKeys={this.state.openKeys} onSelect={this.onSelect} onOpenChange={this.onOpenChange} mode="inline">
             <SubMenu
@@ -124,7 +130,7 @@ class App extends React.Component {
             </SubMenu>
           </Menu>
         </Sider>
-        <Layout>
+        <Layout style={{ marginLeft: 200 }}>
           <Header style={{ background: '#fff', padding: 0 }} />
           {this.showBody()}
           <Footer style={{ textAlign: 'center' }}>Computer Vision ©2019 Created by ICC</Footer>
