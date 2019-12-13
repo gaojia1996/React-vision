@@ -271,7 +271,7 @@ class Shape extends React.Component {
       defaultKey: "circle", //默认选择的筛选形状
       min_dist: 20,
       param1: 100,
-      param2: 100,
+      param2: 50,
       min_radius: 0,
       max_radius: 0,
       thresh: 127,
