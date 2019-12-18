@@ -1,5 +1,5 @@
 const config = {
-  cameraUrl: "http://10.128.250.53:5000",
-  visionUrl: "http://10.3.242.229:5000",
+  cameraUrl: "http://211.68.70.104:63342",
+  visionUrl: "http://211.68.70.104:63341",
 }
 export default config;

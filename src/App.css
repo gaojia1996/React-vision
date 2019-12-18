@@ -34,6 +34,11 @@
   height: 500px;
 }
 
+.avatar-uploader-feature > .ant-upload {
+  width: 90%;
+  height: 350px;
+}
+
 p.ant-upload-drag-icon {
   color: #40a9ff;
   font-size: 48px;

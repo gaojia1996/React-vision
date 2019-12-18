@@ -4,6 +4,7 @@ import { Layout, Menu, Icon } from 'antd';
 import Shape from './views/location/shape';
 import Code from './views/location/code';
 import Bar from './views/location/bar';
+import Feature from './views/location/feature';
 
 const { Header, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -46,6 +47,8 @@ class App extends React.Component {
       return <Bar />;
     } else if (this.state.selectedKeys[0] === '5') {
       return <Shape />;
+    } else if (this.state.selectedKeys[0] === '6') {
+      return <Feature />;
     } else {
       return null;
     }
@@ -72,9 +75,9 @@ class App extends React.Component {
                 </span>
               }
             >
-              <Menu.Item key="0">分类1</Menu.Item>
-              <Menu.Item key="1">分类2</Menu.Item>
-              <Menu.Item key="2">分类3</Menu.Item>
+              <Menu.Item key="0">是否存在焊缝</Menu.Item>
+              <Menu.Item key="1">是否存在缺陷</Menu.Item>
+              <Menu.Item key="2">板子型号判断</Menu.Item>
             </SubMenu>
             <SubMenu
               key="location"
@@ -88,6 +91,7 @@ class App extends React.Component {
               <Menu.Item key="3">二维码识别</Menu.Item>
               <Menu.Item key="4">条形码识别</Menu.Item>
               <Menu.Item key="5">形状探测器</Menu.Item>
+              <Menu.Item key="6">模板匹配</Menu.Item>
             </SubMenu>
             <SubMenu
               key="segmentation"
@@ -98,9 +102,8 @@ class App extends React.Component {
                 </span>
               }
             >
-              <Menu.Item key="6">分割1</Menu.Item>
-              <Menu.Item key="7">分割2</Menu.Item>
-              <Menu.Item key="8">分割3</Menu.Item>
+              <Menu.Item key="7">焊盘检测</Menu.Item>
+              <Menu.Item key="8">划痕缺陷检测</Menu.Item>
             </SubMenu>
             <SubMenu
               key="OCR"
@@ -111,9 +114,7 @@ class App extends React.Component {
                 </span>
               }
             >
-              <Menu.Item key="9">OCR1</Menu.Item>
-              <Menu.Item key="10">OCR2</Menu.Item>
-              <Menu.Item key="11">OCR3</Menu.Item>
+              <Menu.Item key="9">字符检测</Menu.Item>
             </SubMenu>
             <SubMenu
               key="measurement"
@@ -124,9 +125,9 @@ class App extends React.Component {
                 </span>
               }
             >
-              <Menu.Item key="12">测量1</Menu.Item>
-              <Menu.Item key="13">测量2</Menu.Item>
-              <Menu.Item key="14">测量3</Menu.Item>
+              <Menu.Item key="10">长宽高面积周长</Menu.Item>
+              <Menu.Item key="11">旋转角度</Menu.Item>
+              <Menu.Item key="12">元件距离</Menu.Item>
             </SubMenu>
           </Menu>
         </Sider>
