@@ -416,10 +416,10 @@ class Code extends React.Component {
                         </Select>
                       </Tooltip>  <br />
                       <Tooltip placement="right" title={"低阈值用于将高阈值检测出来间断的边缘连接起来"}>
-                        Canny边缘检测低阈值: <InputNumber key='param1' min={1} max={100} defaultValue={this.state.param1} onChange={this.onChangeParam1} />
+                        Canny边缘检测低阈值: <InputNumber key='param1' min={1} max={1000} defaultValue={this.state.param1} onChange={this.onChangeParam1} />
                       </Tooltip>  <br />
                       <Tooltip placement="right" title={"阈值越大检测圆边界时，要求的亮度梯度越大，一些灰灰的不明显的边界就会略去"}>
-                        Canny边缘检测高阈值: <InputNumber key='param2' min={1} max={100} defaultValue={this.state.param2} onChange={this.onChangeParam2} />
+                        Canny边缘检测高阈值: <InputNumber key='param2' min={1} max={1000} defaultValue={this.state.param2} onChange={this.onChangeParam2} />
                       </Tooltip>  <br />
                       <Tooltip placement="right" title={"使用该范围对template进行缩放对目标图片进行匹配"}>
                         缩放范围:
